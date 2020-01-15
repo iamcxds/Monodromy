@@ -1,0 +1,25 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Main</title>
+  <link rel="stylesheet" href="whatever-you-want.css">
+  <script src="main.js"></script>
+</head>
+
+<body>
+  <div id="elm"></div>
+  <script>
+	window.addEventListener("keydown", function(e) {
+	 if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+	 e.preventDefault();
+	 }
+	}, false);
+  </script>
+  <script>
+  var app = Elm.Main.init({
+    node: document.getElementById('elm')
+  });
+  </script>
+</body>
+</html>
