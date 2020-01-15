@@ -1,25 +1,23 @@
 module Main exposing (main)
 
 import Dict
-import Math.Vector2 as V2
+--import Math.Vector2 as V2
 import PixelEngine exposing (Area, Input(..), PixelEngine, game)
 import PixelEngine.Options as Options exposing (Options)
 import PixelEngine.Tile as Tile exposing (Tile)
 import Tools.Atlas as At
 
 
-type alias Position =
-    ( Int, Int )
 
 
-v2P : V2.Vec2 -> Position
+{- v2P : V2.Vec2 -> Position
 v2P v =
     ( floor (V2.getX v), floor (V2.getY v) )
 
 
 p2V : Position -> V2.Vec2
 p2V ( a, b ) =
-    V2.vec2 (toFloat a) (toFloat b)
+    V2.vec2 (toFloat a) (toFloat b) -}
 
 
 type Msg
@@ -32,10 +30,7 @@ type alias Model =
     }
 
 
-type Property
-    = You
-    | Push
-    | Stop
+
 
 
 init : () -> ( Model, Cmd Msg )
@@ -139,7 +134,20 @@ width : Float
 width =
     toFloat <| boardSize * tileSize
 
+view :
+    Model
+    -> { title : String, options : Maybe (Options Msg), body : List (Area Msg) }
+view model =
+    { title = "gou"
+    , options = Just options
+    , body = areas model
+    }
 
+options : Options Msg
+options =
+    Options.default
+        |> Options.withMovementSpeed 0.4
+        
 controls : Input -> Maybe Msg
 controls input =
     case input of
@@ -164,20 +172,7 @@ subscriptions _ =
     Sub.none
 
 
-options : Options Msg
-options =
-    Options.default
-        |> Options.withMovementSpeed 0.4
 
-
-view :
-    Model
-    -> { title : String, options : Maybe (Options Msg), body : List (Area Msg) }
-view model =
-    { title = "gou"
-    , options = Just options
-    , body = areas model
-    }
 
 
 main : PixelEngine () Model Msg

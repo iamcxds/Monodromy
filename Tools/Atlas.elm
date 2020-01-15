@@ -1,4 +1,4 @@
-module Tools.Atlas exposing (GlobalPos,Direction,Chart,Atlas,move,defaultVisableArea,testMap1)
+module Tools.Atlas exposing (GlobalPos,Direction(..),Chart,Atlas,move,defaultVisableArea,testMap1)
 
 import Dict exposing (Dict)
 import EverySet as Set
@@ -117,7 +117,7 @@ d2V dir =
    ,label: a}
 -}
 
-
+{-|this is Chart-}
 type alias Chart =
     { chartId : Int
     , blocks : List Position
