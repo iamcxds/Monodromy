@@ -1,4 +1,4 @@
-module Tools.Atlas exposing (..)
+module Tools.Atlas exposing (GlobalPos,Direction,Chart,Atlas,move,defaultVisableArea,testMap1)
 
 import Dict exposing (Dict)
 import EverySet as Set
