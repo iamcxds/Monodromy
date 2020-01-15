@@ -38,15 +38,6 @@ type Property
     | Stop
 
 
-
-{- type alias Object =
-   {position : Position
-   ,properties:List Property
-   ,tile: Tile Msg
-   }
--}
-
-
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { map = At.testMap1

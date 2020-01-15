@@ -476,4 +476,4 @@ testMap1 =
                 , createLongStraightLinks1 1 ( 4, 5 ) ( 7, 5 ) S 0
                 ]
     in
-    createAtlasNCover 2 base lks "test1"
+    createAtlasNCover 2 base lks "elliptic curve"
