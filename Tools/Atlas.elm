@@ -1,4 +1,4 @@
-module Tools.Atlas exposing (GlobalPos,Direction(..),Chart,Atlas,move,defaultVisableArea,testMap1)
+module Tools.Atlas exposing (GlobalPos,Direction(..),Chart,Atlas,move,defaultVisableArea,myMaps,emptyMap)
 
 import Dict exposing (Dict)
 import EverySet as Set
@@ -117,7 +117,8 @@ d2V dir =
    ,label: a}
 -}
 
-{-|this is Chart-}
+{-| this is Chart
+-}
 type alias Chart =
     { chartId : Int
     , blocks : List Position
@@ -143,11 +144,12 @@ type alias EdgeLink =
     , to : HalfEdge
     }
 
-
+{-| this is Atlas
+-}
 type alias Atlas =
     { charts : Dict Int Chart
     , links : List EdgeLink
-    , atlasName : String
+    , name : String
     }
 
 
@@ -282,7 +284,7 @@ scanAreaByDir n dir =
 
 scanRange : Int
 scanRange =
-    9
+    5
 
 
 allDirScans : List (List Direction)
@@ -451,12 +453,40 @@ createAtlasNCover n base lks name =
         Dict.fromList <|
             List.map createChartByInd (List.range -1 (n - 1))
     , links = newLks
-    , atlasName = name
+    , name = name
     }
 
+emptyMap : Atlas
+emptyMap =
+    { charts = Dict.empty
+    , links = []
+    , name = "nothing here"
 
+    }
 testMap1 : Atlas
 testMap1 =
+    let
+        holes =
+            [( 5, 5 )]
+
+        base i =
+            if i == -1 then
+                holes
+
+            else
+                createChartBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+
+        lks =
+            List.concat <|
+                [ 
+                  createLongStraightLinks1 0 ( 0, 5 ) ( 4, 5 ) S 1
+                , createLongStraightLinks1 1 ( 0, 5 ) ( 4, 5 ) S 0
+                ]
+    in
+        createAtlasNCover 2 base lks "SquareRoot"
+
+testMap2 : Atlas
+testMap2 =
     let
         holes =
             [ ( 1, 1 ), ( 8, 5 ), ( 3, 5 ) ]
@@ -476,4 +506,42 @@ testMap1 =
                 , createLongStraightLinks1 1 ( 4, 5 ) ( 7, 5 ) S 0
                 ]
     in
-    createAtlasNCover 2 base lks "elliptic curve"
+        createAtlasNCover 2 base lks "EllipticCurve"
+
+testMap3 : Atlas 
+testMap3 =
+    let
+        holes =
+            [ ( 3, 5 ), ( 7, 5 ) ]
+
+        base i =
+            if i == -1 then
+                holes
+
+            else
+                createChartBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+
+        lks =
+            List.concat <|
+                [ createLongStraightLinks1 0 ( 8, 5 ) ( 9, 5 ) S 2
+                , createLongStraightLinks1 2 ( 8, 5 ) ( 9, 5 ) S 0
+                , createLongStraightLinks1 0 ( 0, 5 ) ( 2, 5 ) S 1
+                , createLongStraightLinks1 1 ( 0, 5 ) ( 2, 5 ) S 0
+                , createLongStraightLinks1 2 ( 0, 5 ) ( 2, 5 ) S 3
+                , createLongStraightLinks1 3 ( 0, 5 ) ( 2, 5 ) S 2
+                ]
+    in
+        createAtlasNCover 4 base lks "SquareSquareRoot"
+
+myMaps : Dict String Atlas 
+myMaps =
+    let
+        f a = (a.name,a)
+    in
+    
+    Dict.fromList<| 
+        List.map f <|
+        [ testMap1
+        , testMap2
+        , testMap3
+        ]
