@@ -1,8 +1,12 @@
 module Main exposing (main)
-
+import Html exposing (..)
+import Html.Events as Events
+import Html.Attributes exposing (style,tabindex,autofocus)
+import Browser
+import Json.Decode as D
 import Dict
 --import Math.Vector2 as V2
-import PixelEngine exposing (Area, Input(..), PixelEngine, game)
+import PixelEngine exposing (Area,toHtml)
 import PixelEngine.Options as Options exposing (Options)
 import PixelEngine.Tile as Tile exposing (Tile)
 import Tools.Atlas as At
@@ -22,6 +26,7 @@ p2V ( a, b ) =
 
 type Msg
     = Move At.Direction
+    | NoMove
 
 
 type alias Model =
@@ -56,6 +61,8 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
+        NoMove ->
+            ( model, Cmd.none )
 
 
 playerTile : Tile Msg
@@ -134,37 +141,54 @@ width : Float
 width =
     toFloat <| boardSize * tileSize
 
-view :
-    Model
-    -> { title : String, options : Maybe (Options Msg), body : List (Area Msg) }
-view model =
-    { title = "gou"
-    , options = Just options
-    , body = areas model
-    }
-
 options : Options Msg
 options =
     Options.default
         |> Options.withMovementSpeed 0.4
-        
-controls : Input -> Maybe Msg
-controls input =
-    case input of
-        InputUp ->
-            Just <| Move At.N
 
-        InputDown ->
-            Just <| Move At.S
+gameview : Model -> Html Msg
+gameview model = 
+    let
+        cfg = 
+            { options = Just options
+            , width = width
+            } 
+        playGroud =
+            areas model
+    in
+        toHtml cfg playGroud
 
-        InputLeft ->
-            Just <| Move At.W
+view : Model -> Html Msg
+view model =
+    div 
+    [ autofocus True
+    , tabindex 0
+    , style "outline" "none"
+    , onKeyDown controls ]
+    [ gameview model ]
 
-        InputRight ->
-            Just <| Move At.E
+
+onKeyDown: (Int -> msg) -> Attribute msg
+onKeyDown keyControl =
+    
+    Events.custom "keydown" (D.map (\i -> { message = keyControl i, stopPropagation = True, preventDefault = True}) Events.keyCode)        
+controls : Int ->  Msg
+controls int =
+    case int of
+        38 ->
+             Move  At.N
+
+        40 ->
+             Move  At.S
+
+        37 ->
+             Move  At.W
+
+        39 ->
+             Move  At.E
 
         _ ->
-            Nothing
+            NoMove
 
 
 subscriptions : Model -> Sub Msg
@@ -173,15 +197,11 @@ subscriptions _ =
 
 
 
-
-
-main : PixelEngine () Model Msg
+main : Program () Model Msg
 main =
-    game
+    Browser.element
         { init = init
+        , view = view
         , update = update
         , subscriptions = subscriptions
-        , view = view
-        , controls = controls
-        , width = width
         }
