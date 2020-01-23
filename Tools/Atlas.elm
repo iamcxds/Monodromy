@@ -1,4 +1,4 @@
-module Tools.Atlas exposing (GlobalPos,Direction(..),Chart,Atlas,move,defaultVisableArea,myMaps,emptyMap)
+module Tools.Atlas exposing (Atlas, Chart, Direction(..), GlobalPos, defaultVisableArea, emptyMap, formRectangle, minusOfBlocks, move, myMaps)
 
 import Dict exposing (Dict)
 import EverySet as Set
@@ -75,9 +75,11 @@ dirAdd : Direction -> Direction -> Direction
 dirAdd dir1 dir2 =
     int2Dir (d2Int dir1 + d2Int dir2)
 
+
 oppoRot : Direction -> Direction
 oppoRot dir =
     int2Dir -(d2Int dir)
+
 
 oppoDir : Direction -> Direction
 oppoDir dir =
@@ -117,6 +119,7 @@ d2V dir =
    ,label: a}
 -}
 
+
 {-| this is Chart
 -}
 type alias Chart =
@@ -143,6 +146,7 @@ type alias EdgeLink =
     { from : HalfEdge
     , to : HalfEdge
     }
+
 
 {-| this is Atlas
 -}
@@ -273,7 +277,7 @@ scanAreaByDir n dir =
                 |> List.map (List.map flipUpDown)
 
         eastArea =
-            defaultArea ++ ( List.repeat n E :: downArea)
+            defaultArea ++ (List.repeat n E :: downArea)
     in
     if dir == E then
         eastArea
@@ -281,6 +285,7 @@ scanAreaByDir n dir =
     else
         eastArea
             |> List.map (List.map (dirAdd dir))
+
 
 scanRange : Int
 scanRange =
@@ -332,9 +337,25 @@ visableArea atl gP0 scans =
         |> List.concat
         |> Unique.filterDuplicates
 
-defaultVisableArea : Atlas -> GlobalPos -> List GlobalPos
+
+globalPos2ViewData : List GlobalPos -> Dict Position Int
+globalPos2ViewData gPs =
+    let
+        fun : GlobalPos -> ( Position, Int )
+        fun gP =
+            ( gP.pos, gP.chartId )
+    in
+    List.map fun gPs
+        |> Dict.fromList
+
+
+defaultVisableArea : Atlas -> GlobalPos -> Dict Position Int
 defaultVisableArea atl gP0 =
-    visableArea atl gP0 allDirScans
+    case gP0.pos of
+        ( x0, y0 ) ->
+            visableArea atl gP0 allDirScans
+                |> globalPos2ViewData
+                |> Dict.filter (\( x, y ) -> always (((x - x0) ^ 2 + (y - y0) ^ 2) <= scanRange ^ 2))
 
 
 
@@ -389,10 +410,12 @@ linksToGaps ind lks =
 
 --functions about gaps
 
+
 createHalfGap : Int -> Position -> Direction -> List HalfEdge
 createHalfGap i1 p1 d1 =
     --create a one-way gap like a cliff.
     [ HalfEdge i1 p1 d1 ]
+
 
 defaultGaps1 : Int -> Position -> Direction -> List HalfEdge
 defaultGaps1 i1 p1 d1 =
@@ -422,8 +445,8 @@ formRectangle ( a, b ) ( c, d ) =
         |> List.concat
 
 
-createChartBlocks : List Position -> List Position -> List Position
-createChartBlocks base holes =
+minusOfBlocks : List Position -> List Position -> List Position
+minusOfBlocks base holes =
     -- base - holes
     Set.diff (Set.fromList base) (Set.fromList holes)
         |> Set.toList
@@ -456,34 +479,36 @@ createAtlasNCover n base lks name =
     , name = name
     }
 
+
 emptyMap : Atlas
 emptyMap =
     { charts = Dict.empty
     , links = []
     , name = "nothing here"
-
     }
+
+
 testMap1 : Atlas
 testMap1 =
     let
         holes =
-            [( 5, 5 )]
+            [ ( 5, 5 ) ]
 
         base i =
             if i == -1 then
                 holes
 
             else
-                createChartBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+                minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
 
         lks =
             List.concat <|
-                [ 
-                  createLongStraightLinks1 0 ( 0, 5 ) ( 4, 5 ) S 1
+                [ createLongStraightLinks1 0 ( 0, 5 ) ( 4, 5 ) S 1
                 , createLongStraightLinks1 1 ( 0, 5 ) ( 4, 5 ) S 0
                 ]
     in
-        createAtlasNCover 2 base lks "SquareRoot"
+    createAtlasNCover 2 base lks "SquareRoot"
+
 
 testMap2 : Atlas
 testMap2 =
@@ -496,7 +521,7 @@ testMap2 =
                 holes
 
             else
-                createChartBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+                minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
 
         lks =
             List.concat <|
@@ -506,9 +531,10 @@ testMap2 =
                 , createLongStraightLinks1 1 ( 4, 5 ) ( 7, 5 ) S 0
                 ]
     in
-        createAtlasNCover 2 base lks "EllipticCurve"
+    createAtlasNCover 2 base lks "EllipticCurve"
 
-testMap3 : Atlas 
+
+testMap3 : Atlas
 testMap3 =
     let
         holes =
@@ -519,7 +545,7 @@ testMap3 =
                 holes
 
             else
-                createChartBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+                minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
 
         lks =
             List.concat <|
@@ -531,17 +557,18 @@ testMap3 =
                 , createLongStraightLinks1 3 ( 0, 5 ) ( 2, 5 ) S 2
                 ]
     in
-        createAtlasNCover 4 base lks "SquareSquareRoot"
+    createAtlasNCover 4 base lks "SquareSquareRoot"
 
-myMaps : Dict String Atlas 
+
+myMaps : Dict String Atlas
 myMaps =
     let
-        f a = (a.name,a)
+        f a =
+            ( a.name, a )
     in
-    
-    Dict.fromList<| 
+    Dict.fromList <|
         List.map f <|
-        [ testMap1
-        , testMap2
-        , testMap3
-        ]
+            [ testMap1
+            , testMap2
+            , testMap3
+            ]

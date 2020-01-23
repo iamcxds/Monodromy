@@ -2,7 +2,9 @@ module Main exposing (main)
 import Html exposing (Html,div,button,ul,li,span)
 import Html.Attributes exposing (style)
 import Html.Events as Events
+import Json.Decode as D
 import Browser
+import Browser.Events
 
 --import Math.Vector2 as V2
 import Tools.GameObject as Game 
@@ -84,7 +86,12 @@ selectLevelButton level =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    Browser.Events.onKeyDown keyDecoder
+
+keyDecoder : D.Decoder Msg
+keyDecoder =
+    D.map (\a->FromGame (Game.controls a)) (D.field "code" D.string)
+
 
 
 
