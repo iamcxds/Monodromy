@@ -7,7 +7,7 @@ import Browser
 import Browser.Events
 
 --import Math.Vector2 as V2
-import Tools.GameObject as Game 
+import Tools.Game as Game 
 
 
 

@@ -1,7 +1,7 @@
-module Tools.Atlas exposing (Atlas, Chart, Direction(..), GlobalPos, defaultVisableArea, emptyMap, formRectangle, minusOfBlocks, move, myMaps)
+module Tools.Atlas exposing (Atlas, Chart, Direction(..), GlobalPos, defaultVisableArea, emptyMap, formRectangle, minusOfBlocks, tryMoveSimple, myMaps)
 
 import Dict exposing (Dict)
-import EverySet as Set
+import Set
 import List.Unique as Unique
 
 
@@ -75,10 +75,10 @@ dirAdd : Direction -> Direction -> Direction
 dirAdd dir1 dir2 =
     int2Dir (d2Int dir1 + d2Int dir2)
 
-
+{- 
 oppoRot : Direction -> Direction
 oppoRot dir =
-    int2Dir -(d2Int dir)
+    int2Dir -(d2Int dir) -}
 
 
 oppoDir : Direction -> Direction
@@ -157,8 +157,8 @@ type alias Atlas =
     }
 
 
-move : Atlas -> GlobalPos -> Direction -> Result String ( Bool, GlobalPos )
-move atl { chartId, pos } dir =
+tryMove : Atlas -> GlobalPos -> Direction -> Result String ( Bool, GlobalPos )
+tryMove atl { chartId, pos } dir =
     let
         mcha : Maybe Chart
         mcha =
@@ -229,6 +229,10 @@ move atl { chartId, pos } dir =
 
 --functions show the area you can see, the idea is scanning tiles by lines
 
+tryMoveSimple : Atlas -> GlobalPos -> Direction -> ( Bool, GlobalPos )
+tryMoveSimple atl gP dir =
+    tryMove atl gP dir
+        |>Result.withDefault (False, gP)
 
 scanLineDefault : Int -> Int -> List Direction
 scanLineDefault n k =
@@ -301,34 +305,40 @@ allDirScans =
 visableAreaByLine : Atlas -> List GlobalPos -> List Direction -> List GlobalPos
 visableAreaByLine atl gPs line =
     let
-        moveSimple : ( Maybe GlobalPos, Maybe Direction ) -> ( Bool, List GlobalPos )
+        moveSimple : ( Maybe GlobalPos, Maybe Direction ) -> ( Bool, Maybe GlobalPos )
         moveSimple maybewhat =
             case maybewhat of
                 ( Just gP, Just dir ) ->
                     let
+                        obs = pAdd (d2V dir) gP.pos
+
                         res =
-                            move atl gP dir
+                            tryMove atl gP dir
                     in
                     case res of
-                        Ok ( isMove, tGP ) ->
-                            ( isMove, [ tGP ] )
+                        Ok ( True, tGP ) ->
+                            ( True, Just tGP )
+                        Ok ( False , _ ) ->
+                            ( False, Just (GlobalPos -1 obs) )
 
                         _ ->
-                            ( False, [] )
+                            ( False, Nothing )
 
                 _ ->
-                    ( False, [] )
+                    ( False, Nothing )
 
         myTail list =
             List.tail list
                 |> Maybe.withDefault []
     in
-    case moveSimple ( List.head gPs, List.head line ) of
-        ( False, _ ) ->
-            gPs
+        case moveSimple ( List.head gPs, List.head line ) of
+            ( _ , Nothing ) ->
+                gPs
+            ( False , Just obstacle) ->
+                obstacle :: gPs
 
-        ( True, newGP ) ->
-            visableAreaByLine atl (newGP ++ gPs) (myTail line)
+            ( True, Just newGP ) ->
+                visableAreaByLine atl (newGP :: gPs) (myTail line)
 
 
 visableArea : Atlas -> GlobalPos -> List (List Direction) -> List GlobalPos
@@ -411,7 +421,7 @@ linksToGaps ind lks =
 --functions about gaps
 
 
-createHalfGap : Int -> Position -> Direction -> List HalfEdge
+{- createHalfGap : Int -> Position -> Direction -> List HalfEdge
 createHalfGap i1 p1 d1 =
     --create a one-way gap like a cliff.
     [ HalfEdge i1 p1 d1 ]
@@ -422,7 +432,7 @@ defaultGaps1 i1 p1 d1 =
     --create a 2 sides gap
     [ HalfEdge i1 p1 d1
     , HalfEdge i1 (pAdd p1 (d2V d1)) (oppoDir d1)
-    ]
+    ] -}
 
 
 
@@ -474,7 +484,7 @@ createAtlasNCover n base lks name =
     -- the -1 level as obstacle
     { charts =
         Dict.fromList <|
-            List.map createChartByInd (List.range -1 (n - 1))
+            List.map createChartByInd (List.range 0 (n - 1))
     , links = newLks
     , name = name
     }
@@ -494,12 +504,9 @@ testMap1 =
         holes =
             [ ( 5, 5 ) ]
 
-        base i =
-            if i == -1 then
-                holes
-
-            else
-                minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+        base =
+            always <|
+            minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
 
         lks =
             List.concat <|
@@ -516,11 +523,8 @@ testMap2 =
         holes =
             [ ( 1, 1 ), ( 8, 5 ), ( 3, 5 ) ]
 
-        base i =
-            if i == -1 then
-                holes
-
-            else
+        base =
+            always <|
                 minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
 
         lks =
@@ -541,11 +545,14 @@ testMap3 =
             [ ( 3, 5 ), ( 7, 5 ) ]
 
         base i =
-            if i == -1 then
-                holes
-
-            else
-                minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+            case i of
+                0 ->
+                    minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+                2 ->
+                    minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+                _ ->
+                    minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) [(3,5)]
+                
 
         lks =
             List.concat <|
