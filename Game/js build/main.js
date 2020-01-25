@@ -6987,8 +6987,27 @@ var $author$project$Tools$Game$objectTile = function (_v0) {
 			}
 		}());
 };
-var $author$project$Tools$Game$shadowTile = $Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-	_Utils_Tuple2(3, 2));
+var $Orasund$pixelengine$PixelEngine$Tile$jumping = function (t) {
+	var uniqueId = t.uniqueId;
+	if (uniqueId.$ === 'Nothing') {
+		return t;
+	} else {
+		var _v1 = uniqueId.a;
+		var id = _v1.a;
+		return _Utils_update(
+			t,
+			{
+				uniqueId: $elm$core$Maybe$Just(
+					_Utils_Tuple2(id, false))
+			});
+	}
+};
+var $author$project$Tools$Game$shadowTile = $Orasund$pixelengine$PixelEngine$Tile$jumping(
+	A2(
+		$Orasund$pixelengine$PixelEngine$Tile$movable,
+		'shadow',
+		$Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+			_Utils_Tuple2(3, 2))));
 var $author$project$Tools$Game$tileSize = 32;
 var $Orasund$pixelengine$PixelEngine$Graphics$Data$Area$Tiled = function (a) {
 	return {$: 'Tiled', a: a};

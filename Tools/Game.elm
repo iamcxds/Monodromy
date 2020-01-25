@@ -171,7 +171,7 @@ blackTile =
 shadowTile : Tile Msg
 shadowTile =
     Tile.fromPosition ( 3, 2 )
-        --|>Tile.movable "shadow"
+        |>Tile.movable "shadow"|>Tile.jumping
 
 
 areas : GameLevel -> List (Area Msg)
