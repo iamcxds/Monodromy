@@ -9,12 +9,12 @@ import Html.Events as Events
 import PixelEngine exposing (Area, toHtml)
 import PixelEngine.Options as Options exposing (Options)
 import PixelEngine.Tile as Tile exposing (Tile)
+import PixelEngine.Image as Image exposing (Image)
+
 import Tools.Atlas as At exposing (Position, pX, pY)
 import Tools.GameObject as Obj
 
 
-type alias Position =
-    ( Int, Int )
 
 
 type Msg
@@ -173,7 +173,60 @@ shadowTile =
     Tile.fromPosition ( 3, 2 )
         |>Tile.movable "shadow"|>Tile.jumping
 
+controlsImage : String -> Image Msg
+controlsImage keyName =
+    let
+        controlsTiles = 
+            Tile.tileset
+                { source = "controls.png"
+                , spriteWidth = 64
+                , spriteHeight = 64
+                }
+        image (x,y) = 
+            Image.fromTile (Tile.fromPosition (x,y)) controlsTiles
+    in
+    
+    case keyName of
+        "Up" ->
+            image (0,0)
+                |>Image.clickable (Move At.N)
+        "Down" ->
+            image (1,0)
+                |>Image.clickable (Move At.S)
+        "Left" ->
+            image (2,0)
+                |>Image.clickable (Move At.W)
+        "Right" ->
+            image (3,0)
+                |>Image.clickable (Move At.E)
+            
+    
+        _ ->
+            Image.fromSrc "no.png" 
 
+dPad :(Float, Float) ->List ( (Float, Float) ,Image Msg)
+dPad (x,y)=
+    let
+        --off set from up left to center for image
+        offSet = 32
+        (x0,y0)= (x-offSet,y-offSet)
+        relative (a,b) = (a+x0,b+y0)
+    in
+    
+     
+        [( relative (0,-40) ,controlsImage "Up" )
+        , ( relative (0,40) ,controlsImage "Down" )
+        ,( relative (-40,0) ,controlsImage "Left" )
+        ,( relative (40,0) ,controlsImage "Right" ) ]
+
+emptyBackground : PixelEngine.Background
+emptyBackground =
+    PixelEngine.imageBackground
+                { height = 0.0
+                , width = 0.0
+                , source = "no.png"
+                }            
+    
 areas : GameLevel -> List (Area Msg)
 areas { map, groundPattern, visionData } =
     let
@@ -214,6 +267,15 @@ areas { map, groundPattern, visionData } =
             , List.map (\pos -> ( pos, shadowTile )) visionData.shadows
             ]
         )
+    , PixelEngine.imageArea
+        {
+            height= 0
+            , background = emptyBackground
+           
+        }
+
+         (dPad (-90,-180)) 
+
     ]
 
 

@@ -6902,6 +6902,50 @@ var $author$project$Main$update = F2(
 			}());
 	});
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $rtfeldman$elm_css$VirtualDom$Styled$Attribute = F3(
+	function (a, b, c) {
+		return {$: 'Attribute', a: a, b: b, c: c};
+	});
+var $rtfeldman$elm_css$VirtualDom$Styled$unstyledAttribute = function (prop) {
+	return A3($rtfeldman$elm_css$VirtualDom$Styled$Attribute, prop, _List_Nil, '');
+};
+var $rtfeldman$elm_css$Html$Styled$Attributes$fromUnstyled = $rtfeldman$elm_css$VirtualDom$Styled$unstyledAttribute;
+var $Orasund$pixelengine$PixelEngine$Image$withAttributes = F2(
+	function (attributes, i) {
+		var customAttributes = i.customAttributes;
+		return _Utils_update(
+			i,
+			{
+				customAttributes: A2(
+					$elm$core$List$append,
+					customAttributes,
+					A2($elm$core$List$map, $rtfeldman$elm_css$Html$Styled$Attributes$fromUnstyled, attributes))
+			});
+	});
+var $Orasund$pixelengine$PixelEngine$Image$clickable = function (msg) {
+	return $Orasund$pixelengine$PixelEngine$Image$withAttributes(
+		_List_fromArray(
+			[
+				$elm$html$Html$Events$onClick(msg)
+			]));
+};
 var $elm$core$List$singleton = function (value) {
 	return _List_fromArray(
 		[value]);
@@ -6916,6 +6960,170 @@ var $Orasund$pixelengine$PixelEngine$Tile$fromPosition = function (_v0) {
 		uniqueId: $elm$core$Maybe$Nothing
 	};
 };
+var $Orasund$pixelengine$PixelEngine$Graphics$Data$Element$ImageSource = function (a) {
+	return {$: 'ImageSource', a: a};
+};
+var $Orasund$pixelengine$PixelEngine$Graphics$Data$Element$SingleSource = function (a) {
+	return {$: 'SingleSource', a: a};
+};
+var $Orasund$pixelengine$PixelEngine$Image$fromSrc = function (source) {
+	return {
+		customAttributes: _List_Nil,
+		elementType: $Orasund$pixelengine$PixelEngine$Graphics$Data$Element$SingleSource(
+			$Orasund$pixelengine$PixelEngine$Graphics$Data$Element$ImageSource(source)),
+		uniqueId: $elm$core$Maybe$Nothing
+	};
+};
+var $Orasund$pixelengine$PixelEngine$Graphics$Data$Element$TileSource = function (a) {
+	return {$: 'TileSource', a: a};
+};
+var $Orasund$pixelengine$PixelEngine$Graphics$Data$Element$MultipleSources = function (a) {
+	return {$: 'MultipleSources', a: a};
+};
+var $Orasund$pixelengine$PixelEngine$Image$multipleImages = function (list) {
+	var images = A3(
+		$elm$core$List$foldr,
+		function (_v0) {
+			var _v1 = _v0.a;
+			var left = _v1.a;
+			var top = _v1.b;
+			var contentElement = _v0.b;
+			var _v2 = contentElement.elementType;
+			if (_v2.$ === 'SingleSource') {
+				var singleSource = _v2.a;
+				return $elm$core$List$cons(
+					_Utils_Tuple2(
+						{left: left, top: top},
+						singleSource));
+			} else {
+				var multipleSource = _v2.a;
+				return $elm$core$List$append(
+					A2(
+						$elm$core$List$map,
+						function (_v3) {
+							var pos = _v3.a;
+							var singleSource = _v3.b;
+							return _Utils_Tuple2(
+								{left: left + pos.left, top: top + pos.top},
+								singleSource);
+						},
+						multipleSource));
+			}
+		},
+		_List_Nil,
+		list);
+	return {
+		customAttributes: _List_Nil,
+		elementType: $Orasund$pixelengine$PixelEngine$Graphics$Data$Element$MultipleSources(images),
+		uniqueId: $elm$core$Maybe$Nothing
+	};
+};
+var $Orasund$pixelengine$PixelEngine$Image$fromTile = F2(
+	function (_v0, tileset) {
+		var info = _v0.info;
+		var uniqueId = _v0.uniqueId;
+		var customAttributes = _v0.customAttributes;
+		return $Orasund$pixelengine$PixelEngine$Image$multipleImages(
+			A2(
+				$elm$core$List$map,
+				function (_v1) {
+					var top = _v1.top;
+					var left = _v1.left;
+					var steps = _v1.steps;
+					return _Utils_Tuple2(
+						_Utils_Tuple2(0, 0),
+						{
+							customAttributes: customAttributes,
+							elementType: $Orasund$pixelengine$PixelEngine$Graphics$Data$Element$SingleSource(
+								$Orasund$pixelengine$PixelEngine$Graphics$Data$Element$TileSource(
+									{left: left, steps: steps, tileset: tileset, top: top})),
+							uniqueId: uniqueId
+						});
+				},
+				info));
+	});
+var $Orasund$pixelengine$PixelEngine$Tile$tileset = $elm$core$Basics$identity;
+var $author$project$Tools$Game$controlsImage = function (keyName) {
+	var controlsTiles = $Orasund$pixelengine$PixelEngine$Tile$tileset(
+		{source: 'controls.png', spriteHeight: 64, spriteWidth: 64});
+	var image = function (_v1) {
+		var x = _v1.a;
+		var y = _v1.b;
+		return A2(
+			$Orasund$pixelengine$PixelEngine$Image$fromTile,
+			$Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+				_Utils_Tuple2(x, y)),
+			controlsTiles);
+	};
+	switch (keyName) {
+		case 'Up':
+			return A2(
+				$Orasund$pixelengine$PixelEngine$Image$clickable,
+				$author$project$Tools$Game$Move($author$project$Tools$Atlas$N),
+				image(
+					_Utils_Tuple2(0, 0)));
+		case 'Down':
+			return A2(
+				$Orasund$pixelengine$PixelEngine$Image$clickable,
+				$author$project$Tools$Game$Move($author$project$Tools$Atlas$S),
+				image(
+					_Utils_Tuple2(1, 0)));
+		case 'Left':
+			return A2(
+				$Orasund$pixelengine$PixelEngine$Image$clickable,
+				$author$project$Tools$Game$Move($author$project$Tools$Atlas$W),
+				image(
+					_Utils_Tuple2(2, 0)));
+		case 'Right':
+			return A2(
+				$Orasund$pixelengine$PixelEngine$Image$clickable,
+				$author$project$Tools$Game$Move($author$project$Tools$Atlas$E),
+				image(
+					_Utils_Tuple2(3, 0)));
+		default:
+			return $Orasund$pixelengine$PixelEngine$Image$fromSrc('no.png');
+	}
+};
+var $author$project$Tools$Game$dPad = function (_v0) {
+	var x = _v0.a;
+	var y = _v0.b;
+	var offSet = 32;
+	var _v1 = _Utils_Tuple2(x - offSet, y - offSet);
+	var x0 = _v1.a;
+	var y0 = _v1.b;
+	var relative = function (_v2) {
+		var a = _v2.a;
+		var b = _v2.b;
+		return _Utils_Tuple2(a + x0, b + y0);
+	};
+	return _List_fromArray(
+		[
+			_Utils_Tuple2(
+			relative(
+				_Utils_Tuple2(0, -40)),
+			$author$project$Tools$Game$controlsImage('Up')),
+			_Utils_Tuple2(
+			relative(
+				_Utils_Tuple2(0, 40)),
+			$author$project$Tools$Game$controlsImage('Down')),
+			_Utils_Tuple2(
+			relative(
+				_Utils_Tuple2(-40, 0)),
+			$author$project$Tools$Game$controlsImage('Left')),
+			_Utils_Tuple2(
+			relative(
+				_Utils_Tuple2(40, 0)),
+			$author$project$Tools$Game$controlsImage('Right'))
+		]);
+};
+var $Orasund$pixelengine$PixelEngine$Graphics$Data$ImageBackground = function (a) {
+	return {$: 'ImageBackground', a: a};
+};
+var $Orasund$pixelengine$PixelEngine$imageBackground = function (image) {
+	return $Orasund$pixelengine$PixelEngine$Graphics$Data$ImageBackground(image);
+};
+var $author$project$Tools$Game$emptyBackground = $Orasund$pixelengine$PixelEngine$imageBackground(
+	{height: 0.0, source: 'no.png', width: 0.0});
 var $author$project$Tools$Game$blackTile = $Orasund$pixelengine$PixelEngine$Tile$fromPosition(
 	_Utils_Tuple2(2, 2));
 var $author$project$Tools$Game$groundTile = function (ind) {
@@ -6950,12 +7158,16 @@ var $author$project$Tools$Game$groundTile = function (ind) {
 		}
 	}
 };
-var $Orasund$pixelengine$PixelEngine$Graphics$Data$ImageBackground = function (a) {
-	return {$: 'ImageBackground', a: a};
+var $Orasund$pixelengine$PixelEngine$Graphics$Data$Area$Images = function (a) {
+	return {$: 'Images', a: a};
 };
-var $Orasund$pixelengine$PixelEngine$imageBackground = function (image) {
-	return $Orasund$pixelengine$PixelEngine$Graphics$Data$ImageBackground(image);
-};
+var $Orasund$pixelengine$PixelEngine$imageArea = F2(
+	function (_v0, content) {
+		var height = _v0.height;
+		var background = _v0.background;
+		return $Orasund$pixelengine$PixelEngine$Graphics$Data$Area$Images(
+			{background: background, content: content, height: height});
+	});
 var $Orasund$pixelengine$PixelEngine$Tile$movable = F2(
 	function (id, t) {
 		return _Utils_update(
@@ -7069,27 +7281,15 @@ var $author$project$Tools$Game$areas = function (_v0) {
 							return _Utils_Tuple2(pos, $author$project$Tools$Game$shadowTile);
 						},
 						visionData.shadows)
-					])))
+					]))),
+			A2(
+			$Orasund$pixelengine$PixelEngine$imageArea,
+			{background: $author$project$Tools$Game$emptyBackground, height: 0},
+			$author$project$Tools$Game$dPad(
+				_Utils_Tuple2(-90, -180)))
 		]);
 };
 var $elm$html$Html$button = _VirtualDom_node('button');
-var $elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var $elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			$elm$virtual_dom$VirtualDom$on,
-			event,
-			$elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
-var $elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'click',
-		$elm$json$Json$Decode$succeed(msg));
-};
 var $Orasund$pixelengine$PixelEngine$Graphics$Data$Options$Options = function (a) {
 	return {$: 'Options', a: a};
 };
@@ -7130,10 +7330,6 @@ var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $rtfeldman$elm_css$Css$Structure$Compatible = {$: 'Compatible'};
 var $rtfeldman$elm_css$Css$absolute = {position: $rtfeldman$elm_css$Css$Structure$Compatible, value: 'absolute'};
-var $rtfeldman$elm_css$VirtualDom$Styled$Attribute = F3(
-	function (a, b, c) {
-		return {$: 'Attribute', a: a, b: b, c: c};
-	});
 var $elm$virtual_dom$VirtualDom$attribute = F2(
 	function (key, value) {
 		return A2(
@@ -9826,9 +10022,6 @@ var $Orasund$pixelengine$PixelEngine$Graphics$View$Area$renderImageArea = F2(
 								$elm$core$Basics$eq($elm$core$Maybe$Nothing))),
 						content))));
 	});
-var $Orasund$pixelengine$PixelEngine$Graphics$Data$Element$TileSource = function (a) {
-	return {$: 'TileSource', a: a};
-};
 var $Orasund$pixelengine$PixelEngine$Graphics$View$Area$renderTiledArea = F2(
 	function (options, _v0) {
 		var width = options.a.width;
