@@ -1,4 +1,4 @@
-module Tools.GameObject exposing (Object, ObjectsLayout, onePlayerTryMove, objDict,getObjByGP)
+module Tools.GameObject exposing (Object, ObjectsLayout, getObjByGP, objDict, onePlayerTryMove)
 
 {- import Debug exposing (log) -}
 
@@ -48,10 +48,11 @@ generatePropSets layout =
     List.indexedMap objWith propertyList
         |> Dict.fromList
 
-getObjByGP : At.GlobalPos -> ObjectsLayout -> List (String,Int)
+
+getObjByGP : At.GlobalPos -> ObjectsLayout -> List ( String, Int )
 getObjByGP gP layout =
     Dict.filter (\_ o -> pY o == gP) layout
-        |>Dict.keys
+        |> Dict.keys
 
 
 onePlaceTryMove : Set ( String, Int ) -> At.GlobalPos -> At.Atlas -> At.Direction -> ObjectsLayout -> Dict Int (Set ( String, Int )) -> ( Bool, ObjectsLayout )
@@ -125,14 +126,14 @@ onePlaceTryMove names gP atl dir layout propSets =
             defaultCase
 
 
-onePlayerTryMove : At.Atlas -> At.Direction -> ObjectsLayout -> (Bool,ObjectsLayout)
+onePlayerTryMove : At.Atlas -> At.Direction -> ObjectsLayout -> ( Bool, ObjectsLayout )
 onePlayerTryMove atl dir layout =
     let
         mGP =
             Dict.get ( "Player", 0 ) layout
                 |> Maybe.map pY
     in
-    Result.withDefault (False,layout) <|
+    Result.withDefault ( False, layout ) <|
         case mGP of
             Just gP ->
                 onePlaceTryMove (Set.singleton ( "Player", 0 )) gP atl dir layout (generatePropSets layout)
@@ -181,11 +182,13 @@ player =
     , properties = [ You ]
     }
 
+
 crate : Object
 crate =
     { name = "Crate"
     , properties = [ Push ]
     }
+
 
 objDict : Dict String Object
 objDict =

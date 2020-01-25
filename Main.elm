@@ -94,7 +94,7 @@ subscriptions _ =
 
 keyDecoder : D.Decoder Msg
 keyDecoder =
-    D.map (\a -> FromGame (Game.controls a)) (D.field "code" D.string)
+    D.map (\a -> FromGame (Game.keyboardControls a)) (D.field "code" D.string)
 
 
 main : Program () Model Msg

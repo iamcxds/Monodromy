@@ -1,4 +1,4 @@
-module Tools.Game exposing (GameLevel, Msg(..), controls, gameView, myLevels, update)
+module Tools.Game exposing (GameLevel, Msg(..), gameView, keyboardControls, myLevels, update)
 
 --import Json.Decode as D
 
@@ -6,7 +6,7 @@ import Dict exposing (Dict)
 import Html exposing (Html, button, div)
 import Html.Attributes exposing (style)
 import Html.Events as Events
-import PixelEngine exposing (Area, toHtml)
+import PixelEngine exposing (Area, Input(..), toHtml)
 import PixelEngine.Image as Image exposing (Image)
 import PixelEngine.Options as Options exposing (Options)
 import PixelEngine.Tile as Tile exposing (Tile)
@@ -179,19 +179,19 @@ controlsImage keyName =
     case keyName of
         "Up" ->
             Image.fromSrc "ControlButtons/Up.png"
-                |> Image.clickable (Move At.N)
+                |> Image.clickable (inputMsg InputUp)
 
         "Down" ->
             Image.fromSrc "ControlButtons/Down.png"
-                |> Image.clickable (Move At.S)
+                |> Image.clickable (inputMsg InputDown)
 
         "Left" ->
             Image.fromSrc "ControlButtons/Left.png"
-                |> Image.clickable (Move At.W)
+                |> Image.clickable (inputMsg InputLeft)
 
         "Right" ->
             Image.fromSrc "ControlButtons/Right.png"
-                |> Image.clickable (Move At.E)
+                |> Image.clickable (inputMsg InputRight)
 
         _ ->
             Image.fromSrc "no.png"
@@ -312,32 +312,51 @@ options =
 -}
 
 
-controls : String -> Msg
-controls keyCode =
+inputMsg : Input -> Msg
+inputMsg input =
+    case input of
+        InputLeft ->
+            Move At.W
+
+        InputRight ->
+            Move At.E
+
+        InputUp ->
+            Move At.N
+
+        InputDown ->
+            Move At.S
+
+        _ ->
+            NoChange
+
+
+keyboardControls : String -> Msg
+keyboardControls keyCode =
     case keyCode of
         "ArrowUp" ->
-            Move At.N
+            inputMsg InputUp
 
         "ArrowDown" ->
-            Move At.S
+            inputMsg InputDown
 
         "ArrowLeft" ->
-            Move At.W
+            inputMsg InputLeft
 
         "ArrowRight" ->
-            Move At.E
+            inputMsg InputRight
 
         "KeyW" ->
-            Move At.N
+            inputMsg InputUp
 
         "KeyS" ->
-            Move At.S
+            inputMsg InputDown
 
         "KeyA" ->
-            Move At.W
+            inputMsg InputLeft
 
         "KeyD" ->
-            Move At.E
+            inputMsg InputRight
 
         "Escape" ->
             Exit

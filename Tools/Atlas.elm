@@ -1,4 +1,4 @@
-module Tools.Atlas exposing (Atlas, Chart, Direction(..), GlobalPos, Position, defaultVisableArea, emptyMap, formRectangle, minusOfBlocks, mapDict, pX, pY, tryMoveSimple)
+module Tools.Atlas exposing (Atlas, Chart, Direction(..), GlobalPos, Position, defaultVisableArea, emptyMap, formRectangle, mapDict, minusOfBlocks, pX, pY, tryMoveSimple)
 
 {- import Debug exposing (log) -}
 
