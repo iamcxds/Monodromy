@@ -7,14 +7,11 @@ import Html exposing (Html, button, div)
 import Html.Attributes exposing (style)
 import Html.Events as Events
 import PixelEngine exposing (Area, toHtml)
+import PixelEngine.Image as Image exposing (Image)
 import PixelEngine.Options as Options exposing (Options)
 import PixelEngine.Tile as Tile exposing (Tile)
-import PixelEngine.Image as Image exposing (Image)
-
 import Tools.Atlas as At exposing (Position, pX, pY)
 import Tools.GameObject as Obj
-
-
 
 
 type Msg
@@ -117,8 +114,10 @@ objectTile ( name, ind ) =
         case name of
             "Player" ->
                 Tile.fromPosition ( 1, 0 )
+
             "Crate" ->
                 Tile.fromPosition ( 0, 3 )
+
             _ ->
                 Tile.fromPosition ( 0, 0 )
 
@@ -171,79 +170,84 @@ blackTile =
 shadowTile : Tile Msg
 shadowTile =
     Tile.fromPosition ( 3, 2 )
-        |>Tile.movable "shadow"|>Tile.jumping
+        |> Tile.movable "shadow"
+        |> Tile.jumping
+
 
 controlsImage : String -> Image Msg
 controlsImage keyName =
-    let
-        controlsTiles = 
-            Tile.tileset
-                { source = "controls.png"
-                , spriteWidth = 64
-                , spriteHeight = 64
-                }
-        image (x,y) = 
-            Image.fromTile (Tile.fromPosition (x,y)) controlsTiles
-    in
-    
     case keyName of
         "Up" ->
-            image (0,0)
-                |>Image.clickable (Move At.N)
-        "Down" ->
-            image (1,0)
-                |>Image.clickable (Move At.S)
-        "Left" ->
-            image (2,0)
-                |>Image.clickable (Move At.W)
-        "Right" ->
-            image (3,0)
-                |>Image.clickable (Move At.E)
-            
-    
-        _ ->
-            Image.fromSrc "no.png" 
+            Image.fromSrc "ControlButtons/Up.png"
+                |> Image.clickable (Move At.N)
 
-dPad :(Float, Float) ->List ( (Float, Float) ,Image Msg)
-dPad (x,y)=
+        "Down" ->
+            Image.fromSrc "ControlButtons/Down.png"
+                |> Image.clickable (Move At.S)
+
+        "Left" ->
+            Image.fromSrc "ControlButtons/Left.png"
+                |> Image.clickable (Move At.W)
+
+        "Right" ->
+            Image.fromSrc "ControlButtons/Right.png"
+                |> Image.clickable (Move At.E)
+
+        _ ->
+            Image.fromSrc "no.png"
+
+
+dPad : ( Float, Float ) -> List ( ( Float, Float ), Image Msg )
+dPad ( x, y ) =
     let
         --off set from up left to center for image
-        offSet = 32
-        (x0,y0)= (x-offSet,y-offSet)
-        relative (a,b) = (a+x0,b+y0)
+        offSet =
+            32
+
+        ( x0, y0 ) =
+            ( x - offSet, y - offSet )
+
+        relative ( a, b ) =
+            ( a + x0, b + y0 )
     in
-    
-     
-        [( relative (0,-40) ,controlsImage "Up" )
-        , ( relative (0,40) ,controlsImage "Down" )
-        ,( relative (-40,0) ,controlsImage "Left" )
-        ,( relative (40,0) ,controlsImage "Right" ) ]
+    [ ( relative ( 16, -40 ), controlsImage "Up" )
+    , ( relative ( 16, 40 ), controlsImage "Down" )
+    , ( relative ( -40, 16 ), controlsImage "Left" )
+    , ( relative ( 40, 16 ), controlsImage "Right" )
+    ]
+
 
 emptyBackground : PixelEngine.Background
 emptyBackground =
     PixelEngine.imageBackground
-                { height = 0.0
-                , width = 0.0
-                , source = "no.png"
-                }            
-    
+        { height = 0.0
+        , width = 0.0
+        , source = "no.png"
+        }
+
+
 areas : GameLevel -> List (Area Msg)
 areas { map, groundPattern, visionData } =
     let
         vision =
             Dict.toList visionData.visionMemory
-        showOnePosition (pos, things) =
-            let
-                gdTile = groundTile (groundPattern (At.GlobalPos (pX things) pos))
-                objTiles = List.map (\objNameAndId -> objectTile objNameAndId ) (pY things)
 
-                allTiles = gdTile :: objTiles
+        showOnePosition ( pos, things ) =
+            let
+                gdTile =
+                    groundTile (groundPattern (At.GlobalPos (pX things) pos))
+
+                objTiles =
+                    List.map (\objNameAndId -> objectTile objNameAndId) (pY things)
+
+                allTiles =
+                    gdTile :: objTiles
             in
-            
             List.map (Tuple.pair pos) allTiles
+
         visionRes =
             List.map showOnePosition vision
-                |>List.concat
+                |> List.concat
     in
     [ PixelEngine.tiledArea
         { rows = boardSize
@@ -263,19 +267,14 @@ areas { map, groundPattern, visionData } =
         (List.concat
             [ --List.map (\pos -> (pos, blackTile)) allBaseBlocks ,
               visionRes
-            
             , List.map (\pos -> ( pos, shadowTile )) visionData.shadows
             ]
         )
     , PixelEngine.imageArea
-        {
-            height= 0
-            , background = emptyBackground
-           
+        { height = 0
+        , background = emptyBackground
         }
-
-         (dPad (-90,-180)) 
-
+        (dPad ( -90, -180 ))
     ]
 
 
@@ -411,10 +410,12 @@ levelGenerator { map, groundPattern, name, objectsLayout } =
     , objectsLayout = objectsLayout
     }
 
+
 defaultLayout1 : Obj.ObjectsLayout
 defaultLayout1 =
     invokObjectsByList
-                    [ ( "Player", 0, At.GlobalPos 0 ( 4, 4 ) ) , ( "Crate", 0, At.GlobalPos 0 ( 5, 4 ) ),( "Crate", 1, At.GlobalPos 0 ( 6, 4 ) )]
+        [ ( "Player", 0, At.GlobalPos 0 ( 4, 4 ) ), ( "Crate", 0, At.GlobalPos 0 ( 5, 4 ) ), ( "Crate", 1, At.GlobalPos 0 ( 6, 4 ) ) ]
+
 
 myLevels : List GameLevel
 myLevels =
@@ -423,18 +424,15 @@ myLevels =
           , groundPattern = \gP -> gP.chartId
           , name = "Square Root"
           , objectsLayout = defaultLayout1
-                
           }
         , { map = getMapByName "EllipticCurve"
           , groundPattern = \gP -> gP.chartId
           , name = "Elliptic Curve"
           , objectsLayout = defaultLayout1
-                
           }
         , { map = getMapByName "SquareSquareRoot"
           , groundPattern = \gP -> gP.chartId
           , name = "(y^2+1)^2=x"
           , objectsLayout = defaultLayout1
-                
           }
         ]
