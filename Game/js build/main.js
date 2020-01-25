@@ -5639,6 +5639,195 @@ var $author$project$Main$subscriptions = function (_v0) {
 var $author$project$Main$Play = function (a) {
 	return {$: 'Play', a: a};
 };
+var $elm$core$Dict$filter = F2(
+	function (isGood, dict) {
+		return A3(
+			$elm$core$Dict$foldl,
+			F3(
+				function (k, v, d) {
+					return A2(isGood, k, v) ? A3($elm$core$Dict$insert, k, v, d) : d;
+				}),
+			$elm$core$Dict$empty,
+			dict);
+	});
+var $elm$core$Set$Set_elm_builtin = function (a) {
+	return {$: 'Set_elm_builtin', a: a};
+};
+var $elm$core$Set$empty = $elm$core$Set$Set_elm_builtin($elm$core$Dict$empty);
+var $elm$core$Set$insert = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A3($elm$core$Dict$insert, key, _Utils_Tuple0, dict));
+	});
+var $elm$core$Set$fromList = function (list) {
+	return A3($elm$core$List$foldl, $elm$core$Set$insert, $elm$core$Set$empty, list);
+};
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $elm$core$List$member = F2(
+	function (x, xs) {
+		return A2(
+			$elm$core$List$any,
+			function (a) {
+				return _Utils_eq(a, x);
+			},
+			xs);
+	});
+var $author$project$Tools$Atlas$pX = $elm$core$Tuple$first;
+var $author$project$Tools$GameObject$Push = {$: 'Push'};
+var $author$project$Tools$GameObject$Stop = {$: 'Stop'};
+var $author$project$Tools$GameObject$You = {$: 'You'};
+var $author$project$Tools$GameObject$propertyList = _List_fromArray(
+	[$author$project$Tools$GameObject$You, $author$project$Tools$GameObject$Stop, $author$project$Tools$GameObject$Push]);
+var $author$project$Tools$GameObject$generatePropSets = function (layout) {
+	var objWith = F2(
+		function (ind, prop) {
+			return _Utils_Tuple2(
+				ind,
+				$elm$core$Set$fromList(
+					$elm$core$Dict$keys(
+						A2(
+							$elm$core$Dict$filter,
+							F2(
+								function (_v0, o) {
+									return A2(
+										$elm$core$List$member,
+										prop,
+										$author$project$Tools$Atlas$pX(o).properties);
+								}),
+							layout))));
+		});
+	return $elm$core$Dict$fromList(
+		A2($elm$core$List$indexedMap, objWith, $author$project$Tools$GameObject$propertyList));
+};
+var $elm$core$Dict$get = F2(
+	function (targetKey, dict) {
+		get:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
+				switch (_v1.$) {
+					case 'LT':
+						var $temp$targetKey = targetKey,
+							$temp$dict = left;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+					case 'EQ':
+						return $elm$core$Maybe$Just(value);
+					default:
+						var $temp$targetKey = targetKey,
+							$temp$dict = right;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+				}
+			}
+		}
+	});
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $elm$core$Set$foldl = F3(
+	function (func, initialState, _v0) {
+		var dict = _v0.a;
+		return A3(
+			$elm$core$Dict$foldl,
+			F3(
+				function (key, _v1, state) {
+					return A2(func, key, state);
+				}),
+			initialState,
+			dict);
+	});
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
+var $author$project$Tools$Atlas$pY = $elm$core$Tuple$second;
+var $author$project$Tools$GameObject$getObjByGP = F2(
+	function (gP, layout) {
+		return $elm$core$Dict$keys(
+			A2(
+				$elm$core$Dict$filter,
+				F2(
+					function (_v0, o) {
+						return _Utils_eq(
+							$author$project$Tools$Atlas$pY(o),
+							gP);
+					}),
+				layout));
+	});
+var $elm$core$Dict$member = F2(
+	function (key, dict) {
+		var _v0 = A2($elm$core$Dict$get, key, dict);
+		if (_v0.$ === 'Just') {
+			return true;
+		} else {
+			return false;
+		}
+	});
+var $elm$core$Dict$intersect = F2(
+	function (t1, t2) {
+		return A2(
+			$elm$core$Dict$filter,
+			F2(
+				function (k, _v0) {
+					return A2($elm$core$Dict$member, k, t2);
+				}),
+			t1);
+	});
+var $elm$core$Set$intersect = F2(
+	function (_v0, _v1) {
+		var dict1 = _v0.a;
+		var dict2 = _v1.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A2($elm$core$Dict$intersect, dict1, dict2));
+	});
+var $elm$core$Dict$isEmpty = function (dict) {
+	if (dict.$ === 'RBEmpty_elm_builtin') {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $elm$core$Set$isEmpty = function (_v0) {
+	var dict = _v0.a;
+	return $elm$core$Dict$isEmpty(dict);
+};
 var $author$project$Tools$Atlas$GlobalPos = F2(
 	function (chartId, pos) {
 		return {chartId: chartId, pos: pos};
@@ -5673,37 +5862,6 @@ var $elm$core$List$filter = F2(
 			_List_Nil,
 			list);
 	});
-var $elm$core$Dict$get = F2(
-	function (targetKey, dict) {
-		get:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return $elm$core$Maybe$Nothing;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
-				switch (_v1.$) {
-					case 'LT':
-						var $temp$targetKey = targetKey,
-							$temp$dict = left;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-					case 'EQ':
-						return $elm$core$Maybe$Just(value);
-					default:
-						var $temp$targetKey = targetKey,
-							$temp$dict = right;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-				}
-			}
-		}
-	});
 var $elm$core$List$head = function (list) {
 	if (list.b) {
 		var x = list.a;
@@ -5713,36 +5871,6 @@ var $elm$core$List$head = function (list) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
-var $elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
-		}
-	});
-var $elm$core$List$member = F2(
-	function (x, xs) {
-		return A2(
-			$elm$core$List$any,
-			function (a) {
-				return _Utils_eq(a, x);
-			},
-			xs);
-	});
 var $elm$core$Basics$not = _Basics_not;
 var $author$project$Tools$Atlas$pAdd = F2(
 	function (_v0, _v1) {
@@ -5819,326 +5947,13 @@ var $author$project$Tools$Atlas$tryMoveSimple = F3(
 			_Utils_Tuple2(false, gP),
 			A3($author$project$Tools$Atlas$tryMove, atl, gP, dir));
 	});
-var $author$project$Tools$Game$VisionElement = F2(
-	function (visionMemory, shadows) {
-		return {shadows: shadows, visionMemory: visionMemory};
-	});
-var $author$project$Tools$Game$boardSize = 10;
-var $elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
-		}
-	});
-var $elm$core$List$concat = function (lists) {
-	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
-};
-var $elm$core$Tuple$pair = F2(
-	function (a, b) {
-		return _Utils_Tuple2(a, b);
-	});
-var $author$project$Tools$Atlas$formRectangle = F2(
+var $elm$core$Set$union = F2(
 	function (_v0, _v1) {
-		var a = _v0.a;
-		var b = _v0.b;
-		var c = _v1.a;
-		var d = _v1.b;
-		var ys = A2($elm$core$List$range, b, d);
-		var xs = A2($elm$core$List$range, a, c);
-		var f1 = function (x) {
-			return A2(
-				$elm$core$List$map,
-				$elm$core$Tuple$pair(x),
-				ys);
-		};
-		return $elm$core$List$concat(
-			A2($elm$core$List$map, f1, xs));
+		var dict1 = _v0.a;
+		var dict2 = _v1.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A2($elm$core$Dict$union, dict1, dict2));
 	});
-var $author$project$Tools$Game$allBaseBlocks = A2(
-	$author$project$Tools$Atlas$formRectangle,
-	_Utils_Tuple2(0, 0),
-	_Utils_Tuple2($author$project$Tools$Game$boardSize - 1, $author$project$Tools$Game$boardSize - 1));
-var $elm$core$Basics$always = F2(
-	function (a, _v0) {
-		return a;
-	});
-var $author$project$Tools$Atlas$d2Int = function (dir) {
-	switch (dir.$) {
-		case 'N':
-			return 1;
-		case 'W':
-			return 2;
-		case 'S':
-			return 3;
-		default:
-			return 0;
-	}
-};
-var $elm$core$Basics$modBy = _Basics_modBy;
-var $author$project$Tools$Atlas$int2Dir = function (n) {
-	var i = A2($elm$core$Basics$modBy, 4, n);
-	switch (i) {
-		case 1:
-			return $author$project$Tools$Atlas$N;
-		case 2:
-			return $author$project$Tools$Atlas$W;
-		case 3:
-			return $author$project$Tools$Atlas$S;
-		default:
-			return $author$project$Tools$Atlas$E;
-	}
-};
-var $author$project$Tools$Atlas$dirAdd = F2(
-	function (dir1, dir2) {
-		return $author$project$Tools$Atlas$int2Dir(
-			$author$project$Tools$Atlas$d2Int(dir1) + $author$project$Tools$Atlas$d2Int(dir2));
-	});
-var $author$project$Tools$Atlas$flipUpDown = function (dir) {
-	switch (dir.$) {
-		case 'N':
-			return $author$project$Tools$Atlas$S;
-		case 'S':
-			return $author$project$Tools$Atlas$N;
-		default:
-			var i = dir;
-			return i;
-	}
-};
-var $elm$core$List$repeatHelp = F3(
-	function (result, n, value) {
-		repeatHelp:
-		while (true) {
-			if (n <= 0) {
-				return result;
-			} else {
-				var $temp$result = A2($elm$core$List$cons, value, result),
-					$temp$n = n - 1,
-					$temp$value = value;
-				result = $temp$result;
-				n = $temp$n;
-				value = $temp$value;
-				continue repeatHelp;
-			}
-		}
-	});
-var $elm$core$List$repeat = F2(
-	function (n, value) {
-		return A3($elm$core$List$repeatHelp, _List_Nil, n, value);
-	});
-var $author$project$Tools$Atlas$scanLineDefault = F2(
-	function (n, k) {
-		if ((_Utils_cmp(k, n) < 0) && (0 <= k)) {
-			var step = function (i) {
-				if (i === 1) {
-					return _List_fromArray(
-						[$author$project$Tools$Atlas$E]);
-				} else {
-					var b = (((k * ((2 * i) - 3)) + n) / (2 * n)) | 0;
-					var a = (((k * ((2 * i) - 1)) + n) / (2 * n)) | 0;
-					return ((a - b) === 1) ? _Utils_ap(
-						step(i - 1),
-						_List_fromArray(
-							[$author$project$Tools$Atlas$N, $author$project$Tools$Atlas$E])) : _Utils_ap(
-						step(i - 1),
-						_List_fromArray(
-							[$author$project$Tools$Atlas$E]));
-				}
-			};
-			return _Utils_eq(k, n - 1) ? _Utils_ap(
-				step(n),
-				_List_fromArray(
-					[$author$project$Tools$Atlas$N])) : step(n);
-		} else {
-			return _List_Nil;
-		}
-	});
-var $author$project$Tools$Atlas$scanAreaByDir = F2(
-	function (n, dir) {
-		var defaultArea = A2(
-			$elm$core$List$map,
-			$author$project$Tools$Atlas$scanLineDefault(n),
-			A2($elm$core$List$range, 1, n - 1));
-		var downArea = A2(
-			$elm$core$List$map,
-			$elm$core$List$map($author$project$Tools$Atlas$flipUpDown),
-			defaultArea);
-		var eastArea = _Utils_ap(
-			defaultArea,
-			A2(
-				$elm$core$List$cons,
-				A2($elm$core$List$repeat, n, $author$project$Tools$Atlas$E),
-				downArea));
-		return _Utils_eq(dir, $author$project$Tools$Atlas$E) ? eastArea : A2(
-			$elm$core$List$map,
-			$elm$core$List$map(
-				$author$project$Tools$Atlas$dirAdd(dir)),
-			eastArea);
-	});
-var $author$project$Tools$Atlas$scanRange = 5;
-var $author$project$Tools$Atlas$allDirScans = $elm$core$List$concat(
-	A2(
-		$elm$core$List$map,
-		$author$project$Tools$Atlas$scanAreaByDir($author$project$Tools$Atlas$scanRange),
-		_List_fromArray(
-			[$author$project$Tools$Atlas$E, $author$project$Tools$Atlas$N, $author$project$Tools$Atlas$W, $author$project$Tools$Atlas$S])));
-var $elm$core$Dict$filter = F2(
-	function (isGood, dict) {
-		return A3(
-			$elm$core$Dict$foldl,
-			F3(
-				function (k, v, d) {
-					return A2(isGood, k, v) ? A3($elm$core$Dict$insert, k, v, d) : d;
-				}),
-			$elm$core$Dict$empty,
-			dict);
-	});
-var $author$project$Tools$Atlas$globalPos2ViewData = function (gPs) {
-	var fun = function (gP) {
-		return _Utils_Tuple2(gP.pos, gP.chartId);
-	};
-	return $elm$core$Dict$fromList(
-		A2($elm$core$List$map, fun, gPs));
-};
-var $elm$core$Basics$pow = _Basics_pow;
-var $elm$core$Basics$composeR = F3(
-	function (f, g, x) {
-		return g(
-			f(x));
-	});
-var $Chadtech$unique_list$List$Unique$UniqueList = function (a) {
-	return {$: 'UniqueList', a: a};
-};
-var $Chadtech$unique_list$List$Unique$consIfNotMember = F2(
-	function (el, list) {
-		return A2($elm$core$List$member, el, list) ? list : A2($elm$core$List$cons, el, list);
-	});
-var $Chadtech$unique_list$List$Unique$fromList = function (list) {
-	return $Chadtech$unique_list$List$Unique$UniqueList(
-		A3($elm$core$List$foldr, $Chadtech$unique_list$List$Unique$consIfNotMember, _List_Nil, list));
-};
-var $Chadtech$unique_list$List$Unique$toList = function (_v0) {
-	var list = _v0.a;
-	return list;
-};
-var $Chadtech$unique_list$List$Unique$filterDuplicates = A2($elm$core$Basics$composeR, $Chadtech$unique_list$List$Unique$fromList, $Chadtech$unique_list$List$Unique$toList);
-var $elm$core$List$tail = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(xs);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
-var $author$project$Tools$Atlas$visableAreaByLine = F3(
-	function (atl, gPs, line) {
-		visableAreaByLine:
-		while (true) {
-			var myTail = function (list) {
-				return A2(
-					$elm$core$Maybe$withDefault,
-					_List_Nil,
-					$elm$core$List$tail(list));
-			};
-			var moveSimple = function (maybewhat) {
-				if ((maybewhat.a.$ === 'Just') && (maybewhat.b.$ === 'Just')) {
-					var gP = maybewhat.a.a;
-					var dir = maybewhat.b.a;
-					var res = A3($author$project$Tools$Atlas$tryMove, atl, gP, dir);
-					var obs = A2(
-						$author$project$Tools$Atlas$pAdd,
-						$author$project$Tools$Atlas$d2V(dir),
-						gP.pos);
-					if (res.$ === 'Ok') {
-						if (res.a.a) {
-							var _v4 = res.a;
-							var tGP = _v4.b;
-							return _Utils_Tuple2(
-								true,
-								$elm$core$Maybe$Just(tGP));
-						} else {
-							var _v5 = res.a;
-							return _Utils_Tuple2(
-								false,
-								$elm$core$Maybe$Just(
-									A2($author$project$Tools$Atlas$GlobalPos, -1, obs)));
-						}
-					} else {
-						return _Utils_Tuple2(false, $elm$core$Maybe$Nothing);
-					}
-				} else {
-					return _Utils_Tuple2(false, $elm$core$Maybe$Nothing);
-				}
-			};
-			var _v0 = moveSimple(
-				_Utils_Tuple2(
-					$elm$core$List$head(gPs),
-					$elm$core$List$head(line)));
-			if (_v0.b.$ === 'Nothing') {
-				var _v1 = _v0.b;
-				return gPs;
-			} else {
-				if (!_v0.a) {
-					var obstacle = _v0.b.a;
-					return A2($elm$core$List$cons, obstacle, gPs);
-				} else {
-					var newGP = _v0.b.a;
-					var $temp$atl = atl,
-						$temp$gPs = A2($elm$core$List$cons, newGP, gPs),
-						$temp$line = myTail(line);
-					atl = $temp$atl;
-					gPs = $temp$gPs;
-					line = $temp$line;
-					continue visableAreaByLine;
-				}
-			}
-		}
-	});
-var $author$project$Tools$Atlas$visableArea = F3(
-	function (atl, gP0, scans) {
-		return $Chadtech$unique_list$List$Unique$filterDuplicates(
-			$elm$core$List$concat(
-				A2(
-					$elm$core$List$map,
-					A2(
-						$author$project$Tools$Atlas$visableAreaByLine,
-						atl,
-						_List_fromArray(
-							[gP0])),
-					scans)));
-	});
-var $author$project$Tools$Atlas$defaultVisableArea = F2(
-	function (atl, gP0) {
-		var _v0 = gP0.pos;
-		var x0 = _v0.a;
-		var y0 = _v0.b;
-		return A2(
-			$elm$core$Dict$filter,
-			function (_v1) {
-				var x = _v1.a;
-				var y = _v1.b;
-				return $elm$core$Basics$always(
-					_Utils_cmp(
-						A2($elm$core$Basics$pow, x - x0, 2) + A2($elm$core$Basics$pow, y - y0, 2),
-						A2($elm$core$Basics$pow, $author$project$Tools$Atlas$scanRange, 2)) < 1);
-			},
-			$author$project$Tools$Atlas$globalPos2ViewData(
-				A3($author$project$Tools$Atlas$visableArea, atl, gP0, $author$project$Tools$Atlas$allDirScans)));
-	});
-var $elm$core$Set$Set_elm_builtin = function (a) {
-	return {$: 'Set_elm_builtin', a: a};
-};
 var $elm$core$Dict$getMin = function (dict) {
 	getMin:
 	while (true) {
@@ -6501,6 +6316,461 @@ var $elm$core$Dict$remove = F2(
 			return x;
 		}
 	});
+var $elm$core$Dict$update = F3(
+	function (targetKey, alter, dictionary) {
+		var _v0 = alter(
+			A2($elm$core$Dict$get, targetKey, dictionary));
+		if (_v0.$ === 'Just') {
+			var value = _v0.a;
+			return A3($elm$core$Dict$insert, targetKey, value, dictionary);
+		} else {
+			return A2($elm$core$Dict$remove, targetKey, dictionary);
+		}
+	});
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
+var $author$project$Tools$GameObject$onePlaceTryMove = F6(
+	function (names, gP, atl, dir, layout, propSets) {
+		onePlaceTryMove:
+		while (true) {
+			var objsOn = function (gP0) {
+				return A2($author$project$Tools$GameObject$getObjByGP, gP0, layout);
+			};
+			var defaultEmpty = $elm$core$Maybe$withDefault($elm$core$Set$empty);
+			var getPropSet = function (ind) {
+				return defaultEmpty(
+					A2($elm$core$Dict$get, ind, propSets));
+			};
+			var filterPush = $elm$core$Set$intersect(
+				getPropSet(2));
+			var filterStop = $elm$core$Set$intersect(
+				getPropSet(1));
+			var defaultCase = _Utils_Tuple2(false, layout);
+			var _v0 = A3($author$project$Tools$Atlas$tryMoveSimple, atl, gP, dir);
+			if (_v0.a) {
+				var tGP = _v0.b;
+				var updateGP = F2(
+					function (_v2, layout0) {
+						var name = _v2.a;
+						var id = _v2.b;
+						return A3(
+							$elm$core$Dict$update,
+							_Utils_Tuple2(name, id),
+							$elm$core$Maybe$map(
+								function (_v1) {
+									var obj = _v1.a;
+									return _Utils_Tuple2(obj, tGP);
+								}),
+							layout0);
+					});
+				var successCase = _Utils_Tuple2(
+					true,
+					A3($elm$core$Set$foldl, updateGP, layout, names));
+				var objOnTGP = $elm$core$Set$fromList(
+					objsOn(tGP));
+				var pushOnTGP = filterPush(objOnTGP);
+				var stopOnTGP = filterStop(objOnTGP);
+				if ($elm$core$Set$isEmpty(stopOnTGP)) {
+					if ($elm$core$Set$isEmpty(pushOnTGP)) {
+						return successCase;
+					} else {
+						var playersAndPushObj = A2($elm$core$Set$union, names, pushOnTGP);
+						var propsAfterTryPush = A3(
+							$elm$core$Dict$update,
+							1,
+							function (stop) {
+								return $elm$core$Maybe$Just(
+									A2(
+										$elm$core$Set$union,
+										playersAndPushObj,
+										defaultEmpty(stop)));
+							},
+							propSets);
+						var layoutAfterTryPush = $author$project$Tools$Atlas$pY(
+							A6($author$project$Tools$GameObject$onePlaceTryMove, pushOnTGP, tGP, atl, dir, layout, propsAfterTryPush));
+						var $temp$names = names,
+							$temp$gP = gP,
+							$temp$atl = atl,
+							$temp$dir = dir,
+							$temp$layout = layoutAfterTryPush,
+							$temp$propSets = propsAfterTryPush;
+						names = $temp$names;
+						gP = $temp$gP;
+						atl = $temp$atl;
+						dir = $temp$dir;
+						layout = $temp$layout;
+						propSets = $temp$propSets;
+						continue onePlaceTryMove;
+					}
+				} else {
+					return defaultCase;
+				}
+			} else {
+				return defaultCase;
+			}
+		}
+	});
+var $elm$core$Dict$singleton = F2(
+	function (key, value) {
+		return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
+	});
+var $elm$core$Set$singleton = function (key) {
+	return $elm$core$Set$Set_elm_builtin(
+		A2($elm$core$Dict$singleton, key, _Utils_Tuple0));
+};
+var $author$project$Tools$GameObject$onePlayerTryMove = F3(
+	function (atl, dir, layout) {
+		var mGP = A2(
+			$elm$core$Maybe$map,
+			$author$project$Tools$Atlas$pY,
+			A2(
+				$elm$core$Dict$get,
+				_Utils_Tuple2('Player', 0),
+				layout));
+		return A2(
+			$elm$core$Result$withDefault,
+			_Utils_Tuple2(false, layout),
+			function () {
+				if (mGP.$ === 'Just') {
+					var gP = mGP.a;
+					return $elm$core$Result$Ok(
+						A6(
+							$author$project$Tools$GameObject$onePlaceTryMove,
+							$elm$core$Set$singleton(
+								_Utils_Tuple2('Player', 0)),
+							gP,
+							atl,
+							dir,
+							layout,
+							$author$project$Tools$GameObject$generatePropSets(layout)));
+				} else {
+					return $elm$core$Result$Err('Can not find player');
+				}
+			}());
+	});
+var $author$project$Tools$Game$VisionElements = F2(
+	function (visionMemory, shadows) {
+		return {shadows: shadows, visionMemory: visionMemory};
+	});
+var $author$project$Tools$Game$boardSize = 10;
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
+};
+var $elm$core$Tuple$pair = F2(
+	function (a, b) {
+		return _Utils_Tuple2(a, b);
+	});
+var $author$project$Tools$Atlas$formRectangle = F2(
+	function (_v0, _v1) {
+		var a = _v0.a;
+		var b = _v0.b;
+		var c = _v1.a;
+		var d = _v1.b;
+		var ys = A2($elm$core$List$range, b, d);
+		var xs = A2($elm$core$List$range, a, c);
+		var f1 = function (x) {
+			return A2(
+				$elm$core$List$map,
+				$elm$core$Tuple$pair(x),
+				ys);
+		};
+		return $elm$core$List$concat(
+			A2($elm$core$List$map, f1, xs));
+	});
+var $author$project$Tools$Game$allBaseBlocks = A2(
+	$author$project$Tools$Atlas$formRectangle,
+	_Utils_Tuple2(0, 0),
+	_Utils_Tuple2($author$project$Tools$Game$boardSize - 1, $author$project$Tools$Game$boardSize - 1));
+var $elm$core$Basics$always = F2(
+	function (a, _v0) {
+		return a;
+	});
+var $author$project$Tools$Atlas$d2Int = function (dir) {
+	switch (dir.$) {
+		case 'N':
+			return 1;
+		case 'W':
+			return 2;
+		case 'S':
+			return 3;
+		default:
+			return 0;
+	}
+};
+var $elm$core$Basics$modBy = _Basics_modBy;
+var $author$project$Tools$Atlas$int2Dir = function (n) {
+	var i = A2($elm$core$Basics$modBy, 4, n);
+	switch (i) {
+		case 1:
+			return $author$project$Tools$Atlas$N;
+		case 2:
+			return $author$project$Tools$Atlas$W;
+		case 3:
+			return $author$project$Tools$Atlas$S;
+		default:
+			return $author$project$Tools$Atlas$E;
+	}
+};
+var $author$project$Tools$Atlas$dirAdd = F2(
+	function (dir1, dir2) {
+		return $author$project$Tools$Atlas$int2Dir(
+			$author$project$Tools$Atlas$d2Int(dir1) + $author$project$Tools$Atlas$d2Int(dir2));
+	});
+var $author$project$Tools$Atlas$flipUpDown = function (dir) {
+	switch (dir.$) {
+		case 'N':
+			return $author$project$Tools$Atlas$S;
+		case 'S':
+			return $author$project$Tools$Atlas$N;
+		default:
+			var i = dir;
+			return i;
+	}
+};
+var $elm$core$List$repeatHelp = F3(
+	function (result, n, value) {
+		repeatHelp:
+		while (true) {
+			if (n <= 0) {
+				return result;
+			} else {
+				var $temp$result = A2($elm$core$List$cons, value, result),
+					$temp$n = n - 1,
+					$temp$value = value;
+				result = $temp$result;
+				n = $temp$n;
+				value = $temp$value;
+				continue repeatHelp;
+			}
+		}
+	});
+var $elm$core$List$repeat = F2(
+	function (n, value) {
+		return A3($elm$core$List$repeatHelp, _List_Nil, n, value);
+	});
+var $author$project$Tools$Atlas$scanLineDefault = F2(
+	function (n, k) {
+		if ((_Utils_cmp(k, n) < 0) && (0 <= k)) {
+			var step = function (i) {
+				if (i === 1) {
+					return _List_fromArray(
+						[$author$project$Tools$Atlas$E]);
+				} else {
+					var b = (((k * ((2 * i) - 3)) + n) / (2 * n)) | 0;
+					var a = (((k * ((2 * i) - 1)) + n) / (2 * n)) | 0;
+					return ((a - b) === 1) ? _Utils_ap(
+						step(i - 1),
+						_List_fromArray(
+							[$author$project$Tools$Atlas$N, $author$project$Tools$Atlas$E])) : _Utils_ap(
+						step(i - 1),
+						_List_fromArray(
+							[$author$project$Tools$Atlas$E]));
+				}
+			};
+			return _Utils_eq(k, n - 1) ? _Utils_ap(
+				step(n),
+				_List_fromArray(
+					[$author$project$Tools$Atlas$N])) : step(n);
+		} else {
+			return _List_Nil;
+		}
+	});
+var $author$project$Tools$Atlas$scanAreaByDir = F2(
+	function (n, dir) {
+		var defaultArea = A2(
+			$elm$core$List$map,
+			$author$project$Tools$Atlas$scanLineDefault(n),
+			A2($elm$core$List$range, 1, n - 1));
+		var downArea = A2(
+			$elm$core$List$map,
+			$elm$core$List$map($author$project$Tools$Atlas$flipUpDown),
+			defaultArea);
+		var eastArea = _Utils_ap(
+			defaultArea,
+			A2(
+				$elm$core$List$cons,
+				A2($elm$core$List$repeat, n, $author$project$Tools$Atlas$E),
+				downArea));
+		return _Utils_eq(dir, $author$project$Tools$Atlas$E) ? eastArea : A2(
+			$elm$core$List$map,
+			$elm$core$List$map(
+				$author$project$Tools$Atlas$dirAdd(dir)),
+			eastArea);
+	});
+var $author$project$Tools$Atlas$scanRange = 5;
+var $author$project$Tools$Atlas$allDirScans = $elm$core$List$concat(
+	A2(
+		$elm$core$List$map,
+		$author$project$Tools$Atlas$scanAreaByDir($author$project$Tools$Atlas$scanRange),
+		_List_fromArray(
+			[$author$project$Tools$Atlas$E, $author$project$Tools$Atlas$N, $author$project$Tools$Atlas$W, $author$project$Tools$Atlas$S])));
+var $author$project$Tools$Atlas$globalPos2ViewData = function (gPs) {
+	var fun = function (gP) {
+		return _Utils_Tuple2(gP.pos, gP.chartId);
+	};
+	return $elm$core$Dict$fromList(
+		A2($elm$core$List$map, fun, gPs));
+};
+var $elm$core$Basics$pow = _Basics_pow;
+var $elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
+var $Chadtech$unique_list$List$Unique$UniqueList = function (a) {
+	return {$: 'UniqueList', a: a};
+};
+var $Chadtech$unique_list$List$Unique$consIfNotMember = F2(
+	function (el, list) {
+		return A2($elm$core$List$member, el, list) ? list : A2($elm$core$List$cons, el, list);
+	});
+var $Chadtech$unique_list$List$Unique$fromList = function (list) {
+	return $Chadtech$unique_list$List$Unique$UniqueList(
+		A3($elm$core$List$foldr, $Chadtech$unique_list$List$Unique$consIfNotMember, _List_Nil, list));
+};
+var $Chadtech$unique_list$List$Unique$toList = function (_v0) {
+	var list = _v0.a;
+	return list;
+};
+var $Chadtech$unique_list$List$Unique$filterDuplicates = A2($elm$core$Basics$composeR, $Chadtech$unique_list$List$Unique$fromList, $Chadtech$unique_list$List$Unique$toList);
+var $elm$core$List$tail = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(xs);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $author$project$Tools$Atlas$visableAreaByLine = F3(
+	function (atl, gPs, line) {
+		visableAreaByLine:
+		while (true) {
+			var myTail = function (list) {
+				return A2(
+					$elm$core$Maybe$withDefault,
+					_List_Nil,
+					$elm$core$List$tail(list));
+			};
+			var moveSimple = function (maybewhat) {
+				if ((maybewhat.a.$ === 'Just') && (maybewhat.b.$ === 'Just')) {
+					var gP = maybewhat.a.a;
+					var dir = maybewhat.b.a;
+					var res = A3($author$project$Tools$Atlas$tryMove, atl, gP, dir);
+					var obs = A2(
+						$author$project$Tools$Atlas$pAdd,
+						$author$project$Tools$Atlas$d2V(dir),
+						gP.pos);
+					if (res.$ === 'Ok') {
+						if (res.a.a) {
+							var _v4 = res.a;
+							var tGP = _v4.b;
+							return _Utils_Tuple2(
+								true,
+								$elm$core$Maybe$Just(tGP));
+						} else {
+							var _v5 = res.a;
+							return _Utils_Tuple2(
+								false,
+								$elm$core$Maybe$Just(
+									A2($author$project$Tools$Atlas$GlobalPos, -1, obs)));
+						}
+					} else {
+						return _Utils_Tuple2(false, $elm$core$Maybe$Nothing);
+					}
+				} else {
+					return _Utils_Tuple2(false, $elm$core$Maybe$Nothing);
+				}
+			};
+			var _v0 = moveSimple(
+				_Utils_Tuple2(
+					$elm$core$List$head(gPs),
+					$elm$core$List$head(line)));
+			if (_v0.b.$ === 'Nothing') {
+				var _v1 = _v0.b;
+				return gPs;
+			} else {
+				if (!_v0.a) {
+					var obstacle = _v0.b.a;
+					return A2($elm$core$List$cons, obstacle, gPs);
+				} else {
+					var newGP = _v0.b.a;
+					var $temp$atl = atl,
+						$temp$gPs = A2($elm$core$List$cons, newGP, gPs),
+						$temp$line = myTail(line);
+					atl = $temp$atl;
+					gPs = $temp$gPs;
+					line = $temp$line;
+					continue visableAreaByLine;
+				}
+			}
+		}
+	});
+var $author$project$Tools$Atlas$visableArea = F3(
+	function (atl, gP0, scans) {
+		return $Chadtech$unique_list$List$Unique$filterDuplicates(
+			$elm$core$List$concat(
+				A2(
+					$elm$core$List$map,
+					A2(
+						$author$project$Tools$Atlas$visableAreaByLine,
+						atl,
+						_List_fromArray(
+							[gP0])),
+					scans)));
+	});
+var $author$project$Tools$Atlas$defaultVisableArea = F2(
+	function (atl, gP0) {
+		var _v0 = gP0.pos;
+		var x0 = _v0.a;
+		var y0 = _v0.b;
+		return A2(
+			$elm$core$Dict$filter,
+			function (_v1) {
+				var x = _v1.a;
+				var y = _v1.b;
+				return $elm$core$Basics$always(
+					_Utils_cmp(
+						A2($elm$core$Basics$pow, x - x0, 2) + A2($elm$core$Basics$pow, y - y0, 2),
+						A2($elm$core$Basics$pow, $author$project$Tools$Atlas$scanRange, 2)) < 1);
+			},
+			$author$project$Tools$Atlas$globalPos2ViewData(
+				A3($author$project$Tools$Atlas$visableArea, atl, gP0, $author$project$Tools$Atlas$allDirScans)));
+	});
+var $elm$core$Dict$map = F2(
+	function (func, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return $elm$core$Dict$RBEmpty_elm_builtin;
+		} else {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				color,
+				key,
+				A2(func, key, value),
+				A2($elm$core$Dict$map, func, left),
+				A2($elm$core$Dict$map, func, right));
+		}
+	});
 var $elm$core$Dict$diff = F2(
 	function (t1, t2) {
 		return A3(
@@ -6519,16 +6789,6 @@ var $elm$core$Set$diff = F2(
 		return $elm$core$Set$Set_elm_builtin(
 			A2($elm$core$Dict$diff, dict1, dict2));
 	});
-var $elm$core$Set$empty = $elm$core$Set$Set_elm_builtin($elm$core$Dict$empty);
-var $elm$core$Set$insert = F2(
-	function (key, _v0) {
-		var dict = _v0.a;
-		return $elm$core$Set$Set_elm_builtin(
-			A3($elm$core$Dict$insert, key, _Utils_Tuple0, dict));
-	});
-var $elm$core$Set$fromList = function (list) {
-	return A3($elm$core$List$foldl, $elm$core$Set$insert, $elm$core$Set$empty, list);
-};
 var $author$project$Tools$Atlas$minusOfBlocks = F2(
 	function (base, holes) {
 		return $elm$core$Set$toList(
@@ -6537,60 +6797,73 @@ var $author$project$Tools$Atlas$minusOfBlocks = F2(
 				$elm$core$Set$fromList(base),
 				$elm$core$Set$fromList(holes)));
 	});
-var $elm$core$Dict$update = F3(
-	function (targetKey, alter, dictionary) {
-		var _v0 = alter(
-			A2($elm$core$Dict$get, targetKey, dictionary));
-		if (_v0.$ === 'Just') {
-			var value = _v0.a;
-			return A3($elm$core$Dict$insert, targetKey, value, dictionary);
-		} else {
-			return A2($elm$core$Dict$remove, targetKey, dictionary);
-		}
-	});
 var $author$project$Tools$Game$updateVision = F3(
-	function (map, gP, _v0) {
+	function (map, layout, _v0) {
 		var visionMemory = _v0.visionMemory;
-		var currentVision = A2(
-			$elm$core$Dict$filter,
-			function (pos) {
-				return $elm$core$Basics$always(
-					A2($elm$core$List$member, pos, $author$project$Tools$Game$allBaseBlocks));
-			},
-			A2($author$project$Tools$Atlas$defaultVisableArea, map, gP));
-		var onePosUpdate = F2(
-			function (pos, dict) {
-				return A3(
-					$elm$core$Dict$update,
-					pos,
-					$elm$core$Basics$always(
-						A2($elm$core$Dict$get, pos, currentVision)),
-					dict);
-			});
-		var visionRange = $elm$core$Dict$keys(currentVision);
-		var newMemory = A3($elm$core$List$foldl, onePosUpdate, visionMemory, visionRange);
-		var shadows = A2(
-			$elm$core$List$filter,
-			function (pos) {
-				return A2(
-					$elm$core$List$member,
-					pos,
-					$elm$core$Dict$keys(newMemory));
-			},
-			A2($author$project$Tools$Atlas$minusOfBlocks, $author$project$Tools$Game$allBaseBlocks, visionRange));
-		return A2($author$project$Tools$Game$VisionElement, newMemory, shadows);
+		var shadows = _v0.shadows;
+		var mGP = A2(
+			$elm$core$Maybe$map,
+			$author$project$Tools$Atlas$pY,
+			A2(
+				$elm$core$Dict$get,
+				_Utils_Tuple2('Player', 0),
+				layout));
+		if (mGP.$ === 'Just') {
+			var gP = mGP.a;
+			var currentVision = A2(
+				$elm$core$Dict$map,
+				F2(
+					function (pos, id) {
+						return _Utils_Tuple2(
+							id,
+							A2(
+								$author$project$Tools$GameObject$getObjByGP,
+								A2($author$project$Tools$Atlas$GlobalPos, id, pos),
+								layout));
+					}),
+				A2(
+					$elm$core$Dict$filter,
+					function (pos) {
+						return $elm$core$Basics$always(
+							A2($elm$core$List$member, pos, $author$project$Tools$Game$allBaseBlocks));
+					},
+					A2($author$project$Tools$Atlas$defaultVisableArea, map, gP)));
+			var onePosUpdate = F2(
+				function (pos, dict) {
+					return A3(
+						$elm$core$Dict$update,
+						pos,
+						$elm$core$Basics$always(
+							A2($elm$core$Dict$get, pos, currentVision)),
+						dict);
+				});
+			var visionRange = $elm$core$Dict$keys(currentVision);
+			var newMemory = A3($elm$core$List$foldl, onePosUpdate, visionMemory, visionRange);
+			var newShadows = A2(
+				$elm$core$List$filter,
+				function (pos) {
+					return A2(
+						$elm$core$List$member,
+						pos,
+						$elm$core$Dict$keys(newMemory));
+				},
+				A2($author$project$Tools$Atlas$minusOfBlocks, $author$project$Tools$Game$allBaseBlocks, visionRange));
+			return A2($author$project$Tools$Game$VisionElements, newMemory, newShadows);
+		} else {
+			return A2($author$project$Tools$Game$VisionElements, visionMemory, shadows);
+		}
 	});
 var $author$project$Tools$Game$update = F2(
 	function (msg, gameLevel) {
 		if (msg.$ === 'Move') {
 			var direction = msg.a;
-			var res = A3($author$project$Tools$Atlas$tryMoveSimple, gameLevel.map, gameLevel.gP, direction);
+			var res = A3($author$project$Tools$GameObject$onePlayerTryMove, gameLevel.map, direction, gameLevel.objectsLayout);
 			if (res.a) {
-				var tP = res.b;
-				var newVisionData = A3($author$project$Tools$Game$updateVision, gameLevel.map, tP, gameLevel.visionData);
+				var newLayout = res.b;
+				var newVisionData = A3($author$project$Tools$Game$updateVision, gameLevel.map, newLayout, gameLevel.visionData);
 				return _Utils_update(
 					gameLevel,
-					{gP: tP, visionData: newVisionData});
+					{objectsLayout: newLayout, visionData: newVisionData});
 			} else {
 				return gameLevel;
 			}
@@ -6692,11 +6965,28 @@ var $Orasund$pixelengine$PixelEngine$Tile$movable = F2(
 					_Utils_Tuple2(id, true))
 			});
 	});
-var $author$project$Tools$Game$playerTile = A2(
-	$Orasund$pixelengine$PixelEngine$Tile$movable,
-	'player',
-	$Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-		_Utils_Tuple2(1, 0)));
+var $author$project$Tools$Game$objectTile = function (_v0) {
+	var name = _v0.a;
+	var ind = _v0.b;
+	return A2(
+		$Orasund$pixelengine$PixelEngine$Tile$movable,
+		_Utils_ap(
+			name,
+			$elm$core$String$fromInt(ind)),
+		function () {
+			switch (name) {
+				case 'Player':
+					return $Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+						_Utils_Tuple2(1, 0));
+				case 'Crate':
+					return $Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+						_Utils_Tuple2(0, 3));
+				default:
+					return $Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+						_Utils_Tuple2(0, 0));
+			}
+		}());
+};
 var $author$project$Tools$Game$shadowTile = $Orasund$pixelengine$PixelEngine$Tile$fromPosition(
 	_Utils_Tuple2(3, 2));
 var $author$project$Tools$Game$tileSize = 32;
@@ -6714,52 +7004,54 @@ var $Orasund$pixelengine$PixelEngine$tiledArea = F2(
 var $author$project$Tools$Game$width = $author$project$Tools$Game$boardSize * $author$project$Tools$Game$tileSize;
 var $author$project$Tools$Game$areas = function (_v0) {
 	var map = _v0.map;
-	var gP = _v0.gP;
 	var groundPattern = _v0.groundPattern;
 	var visionData = _v0.visionData;
 	var vision = $elm$core$Dict$toList(visionData.visionMemory);
-	var mShowChart = A2($elm$core$Dict$get, gP.chartId, map.charts);
-	if (mShowChart.$ === 'Just') {
-		return _List_fromArray(
-			[
+	var showOnePosition = function (_v1) {
+		var pos = _v1.a;
+		var things = _v1.b;
+		var objTiles = A2(
+			$elm$core$List$map,
+			function (objNameAndId) {
+				return $author$project$Tools$Game$objectTile(objNameAndId);
+			},
+			$author$project$Tools$Atlas$pY(things));
+		var gdTile = $author$project$Tools$Game$groundTile(
+			groundPattern(
 				A2(
-				$Orasund$pixelengine$PixelEngine$tiledArea,
-				{
-					background: $Orasund$pixelengine$PixelEngine$imageBackground(
-						{height: $author$project$Tools$Game$width, source: 'background.png', width: $author$project$Tools$Game$width}),
-					rows: $author$project$Tools$Game$boardSize,
-					tileset: {source: 'tileset.png', spriteHeight: $author$project$Tools$Game$tileSize, spriteWidth: $author$project$Tools$Game$tileSize}
-				},
-				$elm$core$List$concat(
-					_List_fromArray(
-						[
-							A2(
-							$elm$core$List$map,
-							function (_v2) {
-								var pos = _v2.a;
-								var id = _v2.b;
-								return _Utils_Tuple2(
-									pos,
-									$author$project$Tools$Game$groundTile(
-										groundPattern(
-											A2($author$project$Tools$Atlas$GlobalPos, id, pos))));
-							},
-							vision),
-							A2(
-							$elm$core$List$map,
-							function (pos) {
-								return _Utils_Tuple2(pos, $author$project$Tools$Game$shadowTile);
-							},
-							visionData.shadows),
-							_List_fromArray(
-							[
-								_Utils_Tuple2(gP.pos, $author$project$Tools$Game$playerTile)
-							])
-						])))
-			]);
-	} else {
-		return _List_Nil;
-	}
+					$author$project$Tools$Atlas$GlobalPos,
+					$author$project$Tools$Atlas$pX(things),
+					pos)));
+		var allTiles = A2($elm$core$List$cons, gdTile, objTiles);
+		return A2(
+			$elm$core$List$map,
+			$elm$core$Tuple$pair(pos),
+			allTiles);
+	};
+	var visionRes = $elm$core$List$concat(
+		A2($elm$core$List$map, showOnePosition, vision));
+	return _List_fromArray(
+		[
+			A2(
+			$Orasund$pixelengine$PixelEngine$tiledArea,
+			{
+				background: $Orasund$pixelengine$PixelEngine$imageBackground(
+					{height: $author$project$Tools$Game$width, source: 'background.png', width: $author$project$Tools$Game$width}),
+				rows: $author$project$Tools$Game$boardSize,
+				tileset: {source: 'tileset.png', spriteHeight: $author$project$Tools$Game$tileSize, spriteWidth: $author$project$Tools$Game$tileSize}
+			},
+			$elm$core$List$concat(
+				_List_fromArray(
+					[
+						visionRes,
+						A2(
+						$elm$core$List$map,
+						function (pos) {
+							return _Utils_Tuple2(pos, $author$project$Tools$Game$shadowTile);
+						},
+						visionData.shadows)
+					])))
+		]);
 };
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
@@ -6974,16 +7266,6 @@ var $rtfeldman$elm_css$Css$Structure$compactStylesheet = function (_v0) {
 	var finalDeclarations = A2($rtfeldman$elm_css$Css$Structure$withKeyframeDeclarations, keyframesByName, compactedDeclarations);
 	return {charset: charset, declarations: finalDeclarations, imports: imports, namespaces: namespaces};
 };
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
 var $rtfeldman$elm_css$Css$Structure$Output$charsetToString = function (charset) {
 	return A2(
 		$elm$core$Maybe$withDefault,
@@ -8994,10 +9276,6 @@ var $Orasund$pixelengine$PixelEngine$Graphics$Data$Controller$render = function 
 				]))
 		]);
 };
-var $elm$core$Tuple$second = function (_v0) {
-	var y = _v0.b;
-	return y;
-};
 var $rtfeldman$elm_css$Css$Global$selector = F2(
 	function (selectorStr, styles) {
 		return A2(
@@ -10043,10 +10321,6 @@ var $rtfeldman$elm_css$VirtualDom$Styled$accumulateStyledHtml = F2(
 					finalStyles);
 		}
 	});
-var $elm$core$Dict$singleton = F2(
-	function (key, value) {
-		return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
-	});
 var $rtfeldman$elm_css$VirtualDom$Styled$stylesFromPropertiesHelp = F2(
 	function (candidate, properties) {
 		stylesFromPropertiesHelp:
@@ -10350,6 +10624,80 @@ var $author$project$Tools$Game$gameView = function (level) {
 };
 var $elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
 var $elm$html$Html$map = $elm$virtual_dom$VirtualDom$map;
+var $author$project$Tools$GameObject$crate = {
+	name: 'Crate',
+	properties: _List_fromArray(
+		[$author$project$Tools$GameObject$Push])
+};
+var $author$project$Tools$GameObject$player = {
+	name: 'Player',
+	properties: _List_fromArray(
+		[$author$project$Tools$GameObject$You])
+};
+var $author$project$Tools$GameObject$objDict = function () {
+	var f = function (a) {
+		return _Utils_Tuple2(a.name, a);
+	};
+	return $elm$core$Dict$fromList(
+		A2(
+			$elm$core$List$map,
+			f,
+			_List_fromArray(
+				[$author$project$Tools$GameObject$player, $author$project$Tools$GameObject$crate])));
+}();
+var $author$project$Tools$Game$invokObject = F3(
+	function (name, id, gP) {
+		var mObj = A2($elm$core$Dict$get, name, $author$project$Tools$GameObject$objDict);
+		if (mObj.$ === 'Just') {
+			var obj = mObj.a;
+			return _List_fromArray(
+				[
+					_Utils_Tuple2(
+					_Utils_Tuple2(name, id),
+					_Utils_Tuple2(obj, gP))
+				]);
+		} else {
+			return _List_Nil;
+		}
+	});
+var $author$project$Tools$Game$invokObjectsByList = function (list0) {
+	return $elm$core$Dict$fromList(
+		$elm$core$List$concat(
+			A2(
+				$elm$core$List$map,
+				function (_v0) {
+					var name = _v0.a;
+					var id = _v0.b;
+					var gP = _v0.c;
+					return A3($author$project$Tools$Game$invokObject, name, id, gP);
+				},
+				list0)));
+};
+var $author$project$Tools$Game$defaultLayout1 = $author$project$Tools$Game$invokObjectsByList(
+	_List_fromArray(
+		[
+			_Utils_Tuple3(
+			'Player',
+			0,
+			A2(
+				$author$project$Tools$Atlas$GlobalPos,
+				0,
+				_Utils_Tuple2(4, 4))),
+			_Utils_Tuple3(
+			'Crate',
+			0,
+			A2(
+				$author$project$Tools$Atlas$GlobalPos,
+				0,
+				_Utils_Tuple2(5, 4))),
+			_Utils_Tuple3(
+			'Crate',
+			1,
+			A2(
+				$author$project$Tools$Atlas$GlobalPos,
+				0,
+				_Utils_Tuple2(6, 4)))
+		]));
 var $author$project$Tools$Atlas$emptyMap = {charts: $elm$core$Dict$empty, links: _List_Nil, name: 'nothing here'};
 var $author$project$Tools$Atlas$Chart = F3(
 	function (chartId, blocks, gaps) {
@@ -10617,7 +10965,7 @@ var $author$project$Tools$Atlas$testMap3 = function () {
 	};
 	return A4($author$project$Tools$Atlas$createAtlasNCover, 4, base, lks, 'SquareSquareRoot');
 }();
-var $author$project$Tools$Atlas$myMaps = function () {
+var $author$project$Tools$Atlas$mapDict = function () {
 	var f = function (a) {
 		return _Utils_Tuple2(a.name, a);
 	};
@@ -10632,23 +10980,23 @@ var $author$project$Tools$Game$getMapByName = function (name) {
 	return A2(
 		$elm$core$Maybe$withDefault,
 		$author$project$Tools$Atlas$emptyMap,
-		A2($elm$core$Dict$get, name, $author$project$Tools$Atlas$myMaps));
+		A2($elm$core$Dict$get, name, $author$project$Tools$Atlas$mapDict));
 };
 var $author$project$Tools$Game$levelGenerator = function (_v0) {
 	var map = _v0.map;
-	var gP = _v0.gP;
 	var groundPattern = _v0.groundPattern;
 	var name = _v0.name;
+	var objectsLayout = _v0.objectsLayout;
 	return {
-		gP: gP,
 		groundPattern: groundPattern,
 		map: map,
 		name: name,
+		objectsLayout: objectsLayout,
 		visionData: A3(
 			$author$project$Tools$Game$updateVision,
 			map,
-			gP,
-			A2($author$project$Tools$Game$VisionElement, $elm$core$Dict$empty, _List_Nil))
+			objectsLayout,
+			A2($author$project$Tools$Game$VisionElements, $elm$core$Dict$empty, _List_Nil))
 	};
 };
 var $author$project$Tools$Game$myLevels = A2(
@@ -10657,37 +11005,28 @@ var $author$project$Tools$Game$myLevels = A2(
 	_List_fromArray(
 		[
 			{
-			gP: A2(
-				$author$project$Tools$Atlas$GlobalPos,
-				0,
-				_Utils_Tuple2(4, 4)),
 			groundPattern: function (gP) {
 				return gP.chartId;
 			},
 			map: $author$project$Tools$Game$getMapByName('SquareRoot'),
-			name: 'Square Root'
+			name: 'Square Root',
+			objectsLayout: $author$project$Tools$Game$defaultLayout1
 		},
 			{
-			gP: A2(
-				$author$project$Tools$Atlas$GlobalPos,
-				0,
-				_Utils_Tuple2(4, 4)),
 			groundPattern: function (gP) {
 				return gP.chartId;
 			},
 			map: $author$project$Tools$Game$getMapByName('EllipticCurve'),
-			name: 'Elliptic Curve'
+			name: 'Elliptic Curve',
+			objectsLayout: $author$project$Tools$Game$defaultLayout1
 		},
 			{
-			gP: A2(
-				$author$project$Tools$Atlas$GlobalPos,
-				0,
-				_Utils_Tuple2(4, 4)),
 			groundPattern: function (gP) {
 				return gP.chartId;
 			},
 			map: $author$project$Tools$Game$getMapByName('SquareSquareRoot'),
-			name: '(y^2+1)^2=x'
+			name: '(y^2+1)^2=x',
+			objectsLayout: $author$project$Tools$Game$defaultLayout1
 		}
 		]));
 var $author$project$Main$JumpTo = function (a) {

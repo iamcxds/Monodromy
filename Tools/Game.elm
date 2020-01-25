@@ -1,58 +1,91 @@
-module Tools.Game exposing (Msg(..),GameLevel,update,gameView,myLevels,controls)
-import Html exposing (Html,div,button)
-import Html.Events as Events
-import Html.Attributes exposing (style)
+module Tools.Game exposing (GameLevel, Msg(..), controls, gameView, myLevels, update)
+
 --import Json.Decode as D
-import Dict exposing(Dict)
-import PixelEngine exposing (Area,toHtml)
+
+import Dict exposing (Dict)
+import Html exposing (Html, button, div)
+import Html.Attributes exposing (style)
+import Html.Events as Events
+import PixelEngine exposing (Area, toHtml)
 import PixelEngine.Options as Options exposing (Options)
 import PixelEngine.Tile as Tile exposing (Tile)
-import Tools.Atlas as At
+import Tools.Atlas as At exposing (Position, pX, pY)
+import Tools.GameObject as Obj
 
 
 type alias Position =
     ( Int, Int )
+
+
 type Msg
     = Move At.Direction
     | Exit
     | NoChange
 
+
+
 -- Dynamic vision Data
-type alias VisionElement =
-    {   
-      visionMemory : Dict Position Int
+
+
+type alias ThingsOnOnePosition =
+    ( Int, List ( String, Int ) )
+
+
+type alias VisionElements =
+    { -- position (chartId, List (object name ,id)
+      visionMemory : Dict Position ThingsOnOnePosition
     , shadows : List Position
     }
+
+
 type alias GameLevel =
     { map : At.Atlas
-    , gP : At.GlobalPos    
+
+    --, gP : At.GlobalPos
     , name : String
+
     -- every tile associated to a ground tile index
     , groundPattern : At.GlobalPos -> Int
-    , visionData : VisionElement
+    , visionData : VisionElements
+    , objectsLayout : Obj.ObjectsLayout
     }
 
-updateVision : At.Atlas -> At.GlobalPos -> VisionElement -> VisionElement
-updateVision map gP {visionMemory} = 
+
+updateVision : At.Atlas -> Obj.ObjectsLayout -> VisionElements -> VisionElements
+updateVision map layout { visionMemory, shadows } =
     let
-        currentVision = 
-            At.defaultVisableArea map gP
-                |> Dict.filter (\pos-> always (List.member pos allBaseBlocks))
-        visionRange = Dict.keys currentVision
-
-        onePosUpdate : Position -> Dict Position Int -> Dict Position Int
-        onePosUpdate pos dict =
-            Dict.update pos (always (Dict.get pos currentVision)) dict
-        newMemory : Dict Position Int
-        newMemory =
-            List.foldl onePosUpdate visionMemory visionRange
-
-        shadows =
-            At.minusOfBlocks allBaseBlocks visionRange
-                |>List.filter (\pos -> List.member pos (Dict.keys newMemory))
+        mGP =
+            Dict.get ( "Player", 0 ) layout
+                |> Maybe.map pY
     in
-        VisionElement newMemory shadows
+    case mGP of
+        Just gP ->
+            let
+                currentVision : Dict Position ThingsOnOnePosition
+                currentVision =
+                    At.defaultVisableArea map gP
+                        |> Dict.filter (\pos -> always (List.member pos allBaseBlocks))
+                        |> Dict.map (\pos id -> ( id, Obj.getObjByGP (At.GlobalPos id pos) layout ))
 
+                visionRange =
+                    Dict.keys currentVision
+
+                onePosUpdate : Position -> Dict Position ThingsOnOnePosition -> Dict Position ThingsOnOnePosition
+                onePosUpdate pos dict =
+                    Dict.update pos (always (Dict.get pos currentVision)) dict
+
+                newMemory : Dict Position ThingsOnOnePosition
+                newMemory =
+                    List.foldl onePosUpdate visionMemory visionRange
+
+                newShadows =
+                    At.minusOfBlocks allBaseBlocks visionRange
+                        |> List.filter (\pos -> List.member pos (Dict.keys newMemory))
+            in
+            VisionElements newMemory newShadows
+
+        _ ->
+            VisionElements visionMemory shadows
 
 
 update : Msg -> GameLevel -> GameLevel
@@ -61,34 +94,42 @@ update msg gameLevel =
         Move direction ->
             let
                 res =
-                    At.tryMoveSimple gameLevel.map gameLevel.gP direction
-
+                    Obj.onePlayerTryMove gameLevel.map direction gameLevel.objectsLayout
             in
-                case res of
-                    ( True, tP ) ->
-                        let
-                            newVisionData = updateVision gameLevel.map tP gameLevel.visionData
-                        in
-                            { gameLevel | gP = tP , visionData = newVisionData }
+            case res of
+                ( True, newLayout ) ->
+                    let
+                        newVisionData =
+                            updateVision gameLevel.map newLayout gameLevel.visionData
+                    in
+                    { gameLevel | objectsLayout = newLayout, visionData = newVisionData }
 
-                    _ ->
-                        gameLevel
+                _ ->
+                    gameLevel
+
         _ ->
-             gameLevel
+            gameLevel
 
-playerTile : Tile Msg
-playerTile =
-    Tile.fromPosition ( 1, 0 )
-        |> Tile.movable "player"
+
+objectTile : ( String, Int ) -> Tile Msg
+objectTile ( name, ind ) =
+    Tile.movable (name ++ String.fromInt ind) <|
+        case name of
+            "Player" ->
+                Tile.fromPosition ( 1, 0 )
+            "Crate" ->
+                Tile.fromPosition ( 0, 3 )
+            _ ->
+                Tile.fromPosition ( 0, 0 )
 
 
 groundTile : Int -> Tile Msg
 groundTile ind =
-    if ind < 0 then 
+    if ind < 0 then
         blackTile
+
     else
         case ind of
-
             -- red
             0 ->
                 Tile.fromPosition ( 2, 0 )
@@ -97,78 +138,94 @@ groundTile ind =
             1 ->
                 Tile.fromPosition ( 3, 0 )
 
-            -- yellow 
+            -- yellow
             2 ->
                 Tile.fromPosition ( 0, 1 )
 
             -- green
             3 ->
                 Tile.fromPosition ( 1, 1 )
+
             -- cyan
             4 ->
                 Tile.fromPosition ( 2, 1 )
+
             -- blue
             5 ->
                 Tile.fromPosition ( 3, 1 )
+
             -- purple
             6 ->
-                Tile.fromPosition ( 0 , 2 )
+                Tile.fromPosition ( 0, 2 )
+
             -- pink
             _ ->
-                Tile.fromPosition ( 1 , 2 )
+                Tile.fromPosition ( 1, 2 )
+
 
 blackTile : Tile Msg
 blackTile =
     Tile.fromPosition ( 2, 2 )
 
+
 shadowTile : Tile Msg
 shadowTile =
     Tile.fromPosition ( 3, 2 )
+        --|>Tile.movable "shadow"
+
 
 areas : GameLevel -> List (Area Msg)
-areas {map,gP,groundPattern,visionData} =
+areas { map, groundPattern, visionData } =
     let
-        
-        mShowChart =
-            Dict.get gP.chartId map.charts
-        vision = Dict.toList visionData.visionMemory
-        
-    in
-    case mShowChart of
-        Just _ ->
-            [ PixelEngine.tiledArea
-                { rows = boardSize
-                , tileset =
-                    { source = "tileset.png"
-                    , spriteWidth = tileSize
-                    , spriteHeight = tileSize
-                    }
-                , background =
-                    PixelEngine.imageBackground
-                        { height = width
-                        , width = width
-                        , source = "background.png"
-                        }
-                }
-                --Show player and the chart it locates in.
-                (List.concat
-                    [ --List.map (\pos -> (pos, blackTile)) allBaseBlocks ,
-                     List.map (\(pos,id) -> ( pos, groundTile (groundPattern (At.GlobalPos id pos)))) vision
-                    , List.map (\pos -> (pos, shadowTile)) visionData.shadows
-                    , [ ( gP.pos, playerTile ) ]
-                    ]
-                )
-            ]
+        vision =
+            Dict.toList visionData.visionMemory
+        showOnePosition (pos, things) =
+            let
+                gdTile = groundTile (groundPattern (At.GlobalPos (pX things) pos))
+                objTiles = List.map (\objNameAndId -> objectTile objNameAndId ) (pY things)
 
-        Nothing ->
-            []
+                allTiles = gdTile :: objTiles
+            in
+            
+            List.map (Tuple.pair pos) allTiles
+        visionRes =
+            List.map showOnePosition vision
+                |>List.concat
+    in
+    [ PixelEngine.tiledArea
+        { rows = boardSize
+        , tileset =
+            { source = "tileset.png"
+            , spriteWidth = tileSize
+            , spriteHeight = tileSize
+            }
+        , background =
+            PixelEngine.imageBackground
+                { height = width
+                , width = width
+                , source = "background.png"
+                }
+        }
+        --Show player and the chart it locates in.
+        (List.concat
+            [ --List.map (\pos -> (pos, blackTile)) allBaseBlocks ,
+              visionRes
+            
+            , List.map (\pos -> ( pos, shadowTile )) visionData.shadows
+            ]
+        )
+    ]
+
+
 boardSize : Int
 boardSize =
     10
 
+
 allBaseBlocks : List Position
-allBaseBlocks = 
-    At.formRectangle (0,0) (boardSize-1,boardSize-1)
+allBaseBlocks =
+    At.formRectangle ( 0, 0 ) ( boardSize - 1, boardSize - 1 )
+
 
 tileSize : Int
 tileSize =
@@ -179,43 +236,47 @@ width : Float
 width =
     toFloat <| boardSize * tileSize
 
+
 options : Options Msg
 options =
     Options.default
         |> Options.withMovementSpeed 0.4
 
-{- onKeyDown : (Int -> msg) -> Html.Attribute msg
-onKeyDown keyControl =
-    
-    Events.custom "keydown" (D.map (\i -> { message = keyControl i, stopPropagation = True, preventDefault = True}) Events.keyCode)        
- -}
 
-controls : String ->  Msg
+
+{- onKeyDown : (Int -> msg) -> Html.Attribute msg
+   onKeyDown keyControl =
+
+       Events.custom "keydown" (D.map (\i -> { message = keyControl i, stopPropagation = True, preventDefault = True}) Events.keyCode)
+-}
+
+
+controls : String -> Msg
 controls keyCode =
     case keyCode of
         "ArrowUp" ->
-             Move  At.N
+            Move At.N
 
         "ArrowDown" ->
-             Move  At.S
+            Move At.S
 
         "ArrowLeft" ->
-             Move  At.W
+            Move At.W
 
         "ArrowRight" ->
-             Move  At.E
+            Move At.E
 
         "KeyW" ->
-             Move  At.N
+            Move At.N
 
         "KeyS" ->
-             Move  At.S
+            Move At.S
 
         "KeyA" ->
-             Move  At.W
+            Move At.W
 
         "KeyD" ->
-             Move  At.E
+            Move At.E
 
         "Escape" ->
             Exit
@@ -223,63 +284,95 @@ controls keyCode =
         _ ->
             NoChange
 
+
 gameView : GameLevel -> Html Msg
-gameView level = 
+gameView level =
     let
-        cfg = 
+        cfg =
             { options = Just options
             , width = width
-            } 
+            }
+
         playGroud =
             areas level
     in
-        div 
-        [ {- autofocus True
-        , tabindex 0
-        , style "outline" "none" -}
-         ]
-        [ div[style "width" "320px", style "margin" "0 auto"]
-            [button [ Events.onClick Exit ][Html.text "Back to Menu"]]
-        ,toHtml cfg playGroud 
+    div
+        [{- autofocus True
+            , tabindex 0
+            , style "outline" "none"
+         -}
+        ]
+        [ div [ style "width" "320px", style "margin" "0 auto" ]
+            [ button [ Events.onClick Exit ] [ Html.text "Back to Menu" ] ]
+        , toHtml cfg playGroud
         ]
 
 
 getMapByName : String -> At.Atlas
 getMapByName name =
-    Maybe.withDefault At.emptyMap (Dict.get name At.myMaps)
+    Maybe.withDefault At.emptyMap (Dict.get name At.mapDict)
 
-levelGenerator : { map : At.Atlas
-                , gP : At.GlobalPos    
-                , name : String
-                , groundPattern : At.GlobalPos -> Int } -> GameLevel
-levelGenerator {map,gP,groundPattern,name} =
-    { map = map 
-    , gP = gP 
-    , groundPattern = groundPattern
-    , name = name 
-    , visionData = updateVision map gP  (VisionElement Dict.empty [])
 
+invokObject : String -> Int -> At.GlobalPos -> List ( ( String, Int ), ( Obj.Object, At.GlobalPos ) )
+invokObject name id gP =
+    let
+        mObj =
+            Dict.get name Obj.objDict
+    in
+    case mObj of
+        Just obj ->
+            [ ( ( name, id ), ( obj, gP ) ) ]
+
+        _ ->
+            []
+
+
+invokObjectsByList : List ( String, Int, At.GlobalPos ) -> Obj.ObjectsLayout
+invokObjectsByList list0 =
+    List.map (\( name, id, gP ) -> invokObject name id gP) list0
+        |> List.concat
+        |> Dict.fromList
+
+
+levelGenerator :
+    { map : At.Atlas
+    , name : String
+    , groundPattern : At.GlobalPos -> Int
+    , objectsLayout : Obj.ObjectsLayout
     }
-myLevels : List GameLevel 
+    -> GameLevel
+levelGenerator { map, groundPattern, name, objectsLayout } =
+    { map = map
+    , groundPattern = groundPattern
+    , name = name
+    , visionData = updateVision map objectsLayout (VisionElements Dict.empty [])
+    , objectsLayout = objectsLayout
+    }
+
+defaultLayout1 : Obj.ObjectsLayout
+defaultLayout1 =
+    invokObjectsByList
+                    [ ( "Player", 0, At.GlobalPos 0 ( 4, 4 ) ) , ( "Crate", 0, At.GlobalPos 0 ( 5, 4 ) ),( "Crate", 1, At.GlobalPos 0 ( 6, 4 ) )]
+
+myLevels : List GameLevel
 myLevels =
     List.map levelGenerator <|
-    [   
-        { map = getMapByName "SquareRoot" 
-        , gP = At.GlobalPos 0 ( 4, 4 )
-        , groundPattern = \gP -> gP.chartId
-        , name = "Square Root"
-        }
-        ,
-        { map = getMapByName "EllipticCurve" 
-        , gP = At.GlobalPos 0 ( 4, 4 )
-        , groundPattern = \gP -> gP.chartId
-        , name = "Elliptic Curve"
-        }
-        ,
-        {map = getMapByName "SquareSquareRoot" 
-        , gP = At.GlobalPos 0 ( 4, 4 )
-        , groundPattern = \gP -> gP.chartId
-        , name = "(y^2+1)^2=x"
-        }
-        
-    ]        
+        [ { map = getMapByName "SquareRoot"
+          , groundPattern = \gP -> gP.chartId
+          , name = "Square Root"
+          , objectsLayout = defaultLayout1
+                
+          }
+        , { map = getMapByName "EllipticCurve"
+          , groundPattern = \gP -> gP.chartId
+          , name = "Elliptic Curve"
+          , objectsLayout = defaultLayout1
+                
+          }
+        , { map = getMapByName "SquareSquareRoot"
+          , groundPattern = \gP -> gP.chartId
+          , name = "(y^2+1)^2=x"
+          , objectsLayout = defaultLayout1
+                
+          }
+        ]

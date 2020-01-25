@@ -1,281 +1,200 @@
-module Tools.GameObject exposing (Msg(..),GameLevel,update,gameView,myLevels,controls)
-import Html exposing (Html,div,button)
-import Html.Events as Events
-import Html.Attributes exposing (style)
---import Json.Decode as D
-import Dict exposing(Dict)
-import PixelEngine exposing (Area,toHtml)
-import PixelEngine.Options as Options exposing (Options)
-import PixelEngine.Tile as Tile exposing (Tile)
-import Tools.Atlas as At
+module Tools.GameObject exposing (Object, ObjectsLayout, onePlayerTryMove, objDict,getObjByGP)
 
-{- type Property
-    = You
-    | Push
-    | Stop -}
-type alias Position =
-    ( Int, Int )
-type Msg
-    = Move At.Direction
-    | Exit
-    | NoChange
+{- import Debug exposing (log) -}
 
--- Dynamic vision Data
-type alias VisionElement =
-    {   
-      visionMemory : Dict Position Int
-    , shadows : List Position
-    }
-type alias GameLevel =
-    { map : At.Atlas
-    , gP : At.GlobalPos    
-    , name : String
-    -- every tile associated to a ground tile index
-    , groundPattern : At.GlobalPos -> Int
-    , visionData : VisionElement
+import Dict exposing (Dict)
+import Set exposing (Set)
+import Tools.Atlas as At exposing (pX, pY)
+
+
+type Property
+    = You -- 0
+    | Stop --1
+    | Push --2
+
+
+propertyList : List Property
+propertyList =
+    [ You, Stop, Push ]
+
+
+
+{- type Msg
+   = TryMove (String,Int) At.Direction
+   | Message
+-}
+
+
+type alias Object =
+    { name : String
+    , properties : List Property
     }
 
-updateVision : At.Atlas -> At.GlobalPos -> VisionElement -> VisionElement
-updateVision map gP {visionMemory} = 
+
+type alias ObjectsLayout =
+    Dict ( String, Int ) ( Object, At.GlobalPos )
+
+
+generatePropSets : ObjectsLayout -> Dict Int (Set ( String, Int ))
+generatePropSets layout =
     let
-        currentVision = At.defaultVisableArea map gP
-        visionRange = Dict.keys currentVision
-
-        
-        shadows =
-            At.minusOfBlocks allBaseBlocks visionRange
-        onePosUpdate : Position -> Dict Position Int -> Dict Position Int
-        onePosUpdate pos dict =
-            Dict.update pos (always (Dict.get pos currentVision)) dict
-        newMemory : Dict Position Int
-        newMemory =
-            List.foldl onePosUpdate visionMemory visionRange
+        objWith ind prop =
+            ( ind
+            , Dict.filter (\_ o -> List.member prop (pX o).properties) layout
+                |> Dict.keys
+                |> Set.fromList
+            )
     in
-        VisionElement newMemory shadows
+    List.indexedMap objWith propertyList
+        |> Dict.fromList
+
+getObjByGP : At.GlobalPos -> ObjectsLayout -> List (String,Int)
+getObjByGP gP layout =
+    Dict.filter (\_ o -> pY o == gP) layout
+        |>Dict.keys
 
 
+onePlaceTryMove : Set ( String, Int ) -> At.GlobalPos -> At.Atlas -> At.Direction -> ObjectsLayout -> Dict Int (Set ( String, Int )) -> ( Bool, ObjectsLayout )
+onePlaceTryMove names gP atl dir layout propSets =
+    let
+        defaultEmpty =
+            Maybe.withDefault Set.empty
 
-update : Msg -> GameLevel -> GameLevel
-update msg gameLevel =
-    case msg of
-        Move direction ->
+        defaultCase =
+            ( False, layout )
+
+        getPropSet ind =
+            Dict.get ind propSets
+                |> defaultEmpty
+
+        --filterPlayer = Set.intersect (getPropSet 0)
+        filterStop =
+            Set.intersect (getPropSet 1)
+
+        filterPush =
+            Set.intersect (getPropSet 2)
+
+        objsOn gP0 =
+            getObjByGP gP0 layout
+    in
+    case At.tryMoveSimple atl gP dir of
+        ( True, tGP ) ->
             let
-                res =
-                    At.move gameLevel.map gameLevel.gP direction
+                --when success update the layout
+                updateGP ( name, id ) layout0 =
+                    Dict.update ( name, id ) (Maybe.map (\( obj, _ ) -> ( obj, tGP ))) layout0
 
+                successCase =
+                    ( True, Set.foldl updateGP layout names )
+
+                objOnTGP =
+                    Set.fromList (objsOn tGP)
+
+                stopOnTGP =
+                    filterStop objOnTGP
+
+                pushOnTGP =
+                    filterPush objOnTGP
             in
-            case res of
-                Ok ( True, tP ) ->
+            {- try move, if target place has stop object then stop.
+               f has push object then try to move push object
+            -}
+            if Set.isEmpty stopOnTGP then
+                if Set.isEmpty pushOnTGP then
+                    successCase
+
+                else
                     let
-                        newVisionData = updateVision gameLevel.map tP gameLevel.visionData
+                        playersAndPushObj =
+                            Set.union names pushOnTGP
+
+                        propsAfterTryPush =
+                            --update stop objects, add current player and push objects
+                            Dict.update 1 (\stop -> Just (Set.union playersAndPushObj (defaultEmpty stop))) propSets
+
+                        layoutAfterTryPush =
+                            onePlaceTryMove pushOnTGP tGP atl dir layout propsAfterTryPush
+                                |> pY
                     in
-                        { gameLevel | gP = tP , visionData = newVisionData }
+                    onePlaceTryMove names gP atl dir layoutAfterTryPush propsAfterTryPush
 
-                _ ->
-                    gameLevel
+            else
+                defaultCase
+
         _ ->
-             gameLevel
-
-playerTile : Tile Msg
-playerTile =
-    Tile.fromPosition ( 1, 0 )
-        |> Tile.movable "player"
+            defaultCase
 
 
-groundTile : Int -> Tile Msg
-groundTile ind =
-    case ind of
-        
-        -- red
-        0 ->
-            Tile.fromPosition ( 2, 0 )
-
-        -- orange
-        1 ->
-            Tile.fromPosition ( 3, 0 )
-
-        -- yellow 
-        2 ->
-            Tile.fromPosition ( 0, 1 )
-        -- green
-        3 ->
-            Tile.fromPosition ( 1, 1 )
-        -- cyan
-        4 ->
-            Tile.fromPosition ( 2, 1 )
-        -- blue
-        5 ->
-            Tile.fromPosition ( 3, 1 )
-        -- purple
-        6 ->
-            Tile.fromPosition ( 0 , 2 )
-        -- pink
-        _ ->
-            Tile.fromPosition ( 1 , 2 )
-
-blackTile : Tile Msg
-blackTile =
-    Tile.fromPosition ( 2, 2 )
-
-shadowTile : Tile Msg
-shadowTile =
-    Tile.fromPosition ( 3, 2 )
-
-areas : GameLevel -> List (Area Msg)
-areas {map,gP,groundPattern,visionData} =
+onePlayerTryMove : At.Atlas -> At.Direction -> ObjectsLayout -> (Bool,ObjectsLayout)
+onePlayerTryMove atl dir layout =
     let
-        
-        mShowChart =
-            Dict.get gP.chartId map.charts
-        vision = Dict.toList visionData.visionMemory
-        
+        mGP =
+            Dict.get ( "Player", 0 ) layout
+                |> Maybe.map pY
     in
-    case mShowChart of
-        Just _ ->
-            [ PixelEngine.tiledArea
-                { rows = boardSize
-                , tileset =
-                    { source = "tileset.png"
-                    , spriteWidth = tileSize
-                    , spriteHeight = tileSize
-                    }
-                , background =
-                    PixelEngine.imageBackground
-                        { height = width
-                        , width = width
-                        , source = "background.png"
-                        }
-                }
-                --Show player and the chart it locates in.
-                (List.concat
-                    [ List.map (\pos -> (pos, blackTile)) allBaseBlocks
-                    , List.map (\(pos,id) -> ( pos, groundTile (groundPattern (At.GlobalPos id pos)))) vision
-                    , List.map (\pos -> (pos, shadowTile)) visionData.shadows
-                    , [ ( gP.pos, playerTile ) ]
-                    ]
-                )
-            ]
+    Result.withDefault (False,layout) <|
+        case mGP of
+            Just gP ->
+                onePlaceTryMove (Set.singleton ( "Player", 0 )) gP atl dir layout (generatePropSets layout)
+                    |> Ok
 
-        Nothing ->
-            []
-boardSize : Int
-boardSize =
-    10
-
-allBaseBlocks : List Position
-allBaseBlocks = 
-    At.formRectangle (0,0) (boardSize-1,boardSize-1)
-
-tileSize : Int
-tileSize =
-    32
+            Nothing ->
+                Err {- log "ObjectError" -} "Can not find player"
 
 
-width : Float
-width =
-    toFloat <| boardSize * tileSize
 
-options : Options Msg
-options =
-    Options.default
-        |> Options.withMovementSpeed 0.4
-
-{- onKeyDown : (Int -> msg) -> Html.Attribute msg
-onKeyDown keyControl =
-    
-    Events.custom "keydown" (D.map (\i -> { message = keyControl i, stopPropagation = True, preventDefault = True}) Events.keyCode)        
- -}
-
-controls : String ->  Msg
-controls keyCode =
-    case keyCode of
-        "ArrowUp" ->
-             Move  At.N
-
-        "ArrowDown" ->
-             Move  At.S
-
-        "ArrowLeft" ->
-             Move  At.W
-
-        "ArrowRight" ->
-             Move  At.E
-
-        "KeyW" ->
-             Move  At.N
-
-        "KeyS" ->
-             Move  At.S
-
-        "KeyA" ->
-             Move  At.W
-
-        "KeyD" ->
-             Move  At.E
-
-        "Escape" ->
-            Exit
-
-        _ ->
-            NoChange
-
-gameView : GameLevel -> Html Msg
-gameView level = 
-    let
-        cfg = 
-            { options = Just options
-            , width = width
-            } 
-        playGroud =
-            areas level
-    in
-        div 
-        [ {- autofocus True
-        , tabindex 0
-        , style "outline" "none" -}
-         ]
-        [ div[style "width" "320px", style "margin" "0 auto"]
-            [button [ Events.onClick Exit ][Html.text "Back to Menu"]]
-        ,toHtml cfg playGroud 
-        ]
+{- tryUpdateObjects : At.Atlas -> ObjectsLayOut -> Dict Int (Set (String,Int)) -> Msg -> (Bool,ObjectsLayOut)
+   tryUpdateObjects atl layout propSets msg =
+       let
+           defaultCase = (False , layout)
+           getPropSet ind =
+               Dict.get ind propSets
+                   |>Maybe.withDefault Set.empty
+           filterPlayer = Set.intersect (getPropSet 0)
+           filterStop = Set.intersect (getPropSet 1)
+           filterPush = Set.intersect (getPropSet 2)
+           objsOn gP = Dict.filter (\_ o -> ((pY o) == gP)) layout
 
 
-getMapByName : String -> At.Atlas
-getMapByName name =
-    Maybe.withDefault At.emptyMap (Dict.get name At.myMaps)
 
-levelGenerator : { map : At.Atlas
-                , gP : At.GlobalPos    
-                , name : String
-                , groundPattern : At.GlobalPos -> Int } -> GameLevel
-levelGenerator {map,gP,groundPattern,name} =
-    { map = map 
-    , gP = gP 
-    , groundPattern = groundPattern
-    , name = name 
-    , visionData = updateVision map gP  (VisionElement Dict.empty [])
 
+
+       in
+           case msg of
+               TryMove (name,id) dir ->
+                   case Dict.get (name,ind) layout of
+                       Just (obj, gP) ->
+                           ( True , upd )
+
+                       Nothing -> defaultCase
+
+
+
+
+               _ -> defaultCase
+-}
+
+
+player : Object
+player =
+    { name = "Player"
+    , properties = [ You ]
     }
-myLevels : List GameLevel 
-myLevels =
-    List.map levelGenerator <|
-    [   
-        { map = getMapByName "SquareRoot" 
-        , gP = At.GlobalPos 0 ( 4, 4 )
-        , groundPattern = \gP -> gP.chartId
-        , name = "Square Root"
-        }
-        ,
-        { map = getMapByName "EllipticCurve" 
-        , gP = At.GlobalPos 0 ( 4, 4 )
-        , groundPattern = \gP -> gP.chartId
-        , name = "Elliptic Curve"
-        }
-        ,
-        {map = getMapByName "SquareSquareRoot" 
-        , gP = At.GlobalPos 0 ( 4, 4 )
-        , groundPattern = \gP -> gP.chartId
-        , name = "(y^2+1)^2=x"
-        }
-        
-    ]        
+
+crate : Object
+crate =
+    { name = "Crate"
+    , properties = [ Push ]
+    }
+
+objDict : Dict String Object
+objDict =
+    let
+        f a =
+            ( a.name, a )
+    in
+    Dict.fromList <|
+        List.map f <|
+            [ player
+            , crate
+            ]

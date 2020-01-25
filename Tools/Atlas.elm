@@ -1,8 +1,20 @@
-module Tools.Atlas exposing (Atlas, Chart, Direction(..), GlobalPos, defaultVisableArea, emptyMap, formRectangle, minusOfBlocks, tryMoveSimple, myMaps)
+module Tools.Atlas exposing (Atlas, Chart, Direction(..), GlobalPos, Position, defaultVisableArea, emptyMap, formRectangle, minusOfBlocks, mapDict, pX, pY, tryMoveSimple)
+
+{- import Debug exposing (log) -}
 
 import Dict exposing (Dict)
-import Set
 import List.Unique as Unique
+import Set
+
+
+pX : ( a, b ) -> a
+pX =
+    Tuple.first
+
+
+pY : ( a, b ) -> b
+pY =
+    Tuple.second
 
 
 type alias Position =
@@ -75,10 +87,13 @@ dirAdd : Direction -> Direction -> Direction
 dirAdd dir1 dir2 =
     int2Dir (d2Int dir1 + d2Int dir2)
 
-{- 
-oppoRot : Direction -> Direction
-oppoRot dir =
-    int2Dir -(d2Int dir) -}
+
+
+{-
+   oppoRot : Direction -> Direction
+   oppoRot dir =
+       int2Dir -(d2Int dir)
+-}
 
 
 oppoDir : Direction -> Direction
@@ -178,7 +193,7 @@ tryMove atl { chartId, pos } dir =
     in
     case mcha of
         Nothing ->
-            Err "Can not find the chart"
+            Err {- log "TryMoveError" -} "Can not find the chart"
 
         Just cha ->
             if List.member pos cha.blocks then
@@ -223,16 +238,18 @@ tryMove atl { chartId, pos } dir =
                     Ok ( True, GlobalPos chartId tP )
 
             else
-                Err "Position is out of chart"
+                Err {- log "TryMoveError" -} "Position is out of chart"
 
 
 
 --functions show the area you can see, the idea is scanning tiles by lines
 
+
 tryMoveSimple : Atlas -> GlobalPos -> Direction -> ( Bool, GlobalPos )
 tryMoveSimple atl gP dir =
     tryMove atl gP dir
-        |>Result.withDefault (False, gP)
+        |> Result.withDefault ( False, gP )
+
 
 scanLineDefault : Int -> Int -> List Direction
 scanLineDefault n k =
@@ -310,7 +327,8 @@ visableAreaByLine atl gPs line =
             case maybewhat of
                 ( Just gP, Just dir ) ->
                     let
-                        obs = pAdd (d2V dir) gP.pos
+                        obs =
+                            pAdd (d2V dir) gP.pos
 
                         res =
                             tryMove atl gP dir
@@ -318,7 +336,8 @@ visableAreaByLine atl gPs line =
                     case res of
                         Ok ( True, tGP ) ->
                             ( True, Just tGP )
-                        Ok ( False , _ ) ->
+
+                        Ok ( False, _ ) ->
                             ( False, Just (GlobalPos -1 obs) )
 
                         _ ->
@@ -331,14 +350,15 @@ visableAreaByLine atl gPs line =
             List.tail list
                 |> Maybe.withDefault []
     in
-        case moveSimple ( List.head gPs, List.head line ) of
-            ( _ , Nothing ) ->
-                gPs
-            ( False , Just obstacle) ->
-                obstacle :: gPs
+    case moveSimple ( List.head gPs, List.head line ) of
+        ( _, Nothing ) ->
+            gPs
 
-            ( True, Just newGP ) ->
-                visableAreaByLine atl (newGP :: gPs) (myTail line)
+        ( False, Just obstacle ) ->
+            obstacle :: gPs
+
+        ( True, Just newGP ) ->
+            visableAreaByLine atl (newGP :: gPs) (myTail line)
 
 
 visableArea : Atlas -> GlobalPos -> List (List Direction) -> List GlobalPos
@@ -419,23 +439,19 @@ linksToGaps ind lks =
 
 
 --functions about gaps
-
-
 {- createHalfGap : Int -> Position -> Direction -> List HalfEdge
-createHalfGap i1 p1 d1 =
-    --create a one-way gap like a cliff.
-    [ HalfEdge i1 p1 d1 ]
+   createHalfGap i1 p1 d1 =
+       --create a one-way gap like a cliff.
+       [ HalfEdge i1 p1 d1 ]
 
 
-defaultGaps1 : Int -> Position -> Direction -> List HalfEdge
-defaultGaps1 i1 p1 d1 =
-    --create a 2 sides gap
-    [ HalfEdge i1 p1 d1
-    , HalfEdge i1 (pAdd p1 (d2V d1)) (oppoDir d1)
-    ] -}
-
-
-
+   defaultGaps1 : Int -> Position -> Direction -> List HalfEdge
+   defaultGaps1 i1 p1 d1 =
+       --create a 2 sides gap
+       [ HalfEdge i1 p1 d1
+       , HalfEdge i1 (pAdd p1 (d2V d1)) (oppoDir d1)
+       ]
+-}
 --functions about chart
 
 
@@ -506,7 +522,7 @@ testMap1 =
 
         base =
             always <|
-            minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+                minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
 
         lks =
             List.concat <|
@@ -548,11 +564,12 @@ testMap3 =
             case i of
                 0 ->
                     minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+
                 2 ->
                     minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+
                 _ ->
-                    minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) [(3,5)]
-                
+                    minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) [ ( 3, 5 ) ]
 
         lks =
             List.concat <|
@@ -567,8 +584,8 @@ testMap3 =
     createAtlasNCover 4 base lks "SquareSquareRoot"
 
 
-myMaps : Dict String Atlas
-myMaps =
+mapDict : Dict String Atlas
+mapDict =
     let
         f a =
             ( a.name, a )
