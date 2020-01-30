@@ -17,6 +17,7 @@ import Tools.GameObject as Obj
 type Msg
     = Move At.Direction
     | Exit
+    | Undo
     | NoChange
 
 
@@ -34,7 +35,11 @@ type alias VisionElements =
     , shadows : List Position
     }
 
-
+type alias GameState =
+    {
+      visionData : VisionElements
+    , objectsLayout : Obj.ObjectsLayout  
+    }
 type alias GameLevel =
     { map : At.Atlas
 
@@ -45,6 +50,7 @@ type alias GameLevel =
     , groundPattern : At.GlobalPos -> Int
     , visionData : VisionElements
     , objectsLayout : Obj.ObjectsLayout
+    , gameRecords : List GameState
     }
 
 
@@ -98,12 +104,25 @@ update msg gameLevel =
                     let
                         newVisionData =
                             updateVision gameLevel.map newLayout gameLevel.visionData
+                        oldState = GameState gameLevel.visionData gameLevel.objectsLayout
                     in
-                    { gameLevel | objectsLayout = newLayout, visionData = newVisionData }
+                    { gameLevel | objectsLayout = newLayout
+                                , visionData = newVisionData
+                                , gameRecords = oldState :: gameLevel.gameRecords }
 
                 _ ->
                     gameLevel
-
+        Undo -> 
+            case gameLevel.gameRecords of
+                [] -> gameLevel
+                    
+            
+                x::xs ->
+                    { gameLevel | objectsLayout = x.objectsLayout
+                                , visionData = x.visionData
+                                , gameRecords = xs }
+                    
+            
         _ ->
             gameLevel
 
@@ -173,24 +192,30 @@ shadowTile =
         |> Tile.movable "shadow"
         |> Tile.jumping
 
+assetsPath : String
+assetsPath = "Assets/"
 
 controlsImage : String -> Image Msg
 controlsImage keyName =
+    let
+        path = assetsPath ++ "Graphic/ControlButtons/"
+    in
+    
     case keyName of
         "Up" ->
-            Image.fromSrc "ControlButtons/Up.png"
+            Image.fromSrc (path ++"Up.png")
                 |> Image.clickable (inputMsg InputUp)
 
         "Down" ->
-            Image.fromSrc "ControlButtons/Down.png"
+            Image.fromSrc (path ++"Down.png")
                 |> Image.clickable (inputMsg InputDown)
 
         "Left" ->
-            Image.fromSrc "ControlButtons/Left.png"
+            Image.fromSrc (path ++"Left.png")
                 |> Image.clickable (inputMsg InputLeft)
 
         "Right" ->
-            Image.fromSrc "ControlButtons/Right.png"
+            Image.fromSrc (path ++"Right.png")
                 |> Image.clickable (inputMsg InputRight)
 
         _ ->
@@ -227,8 +252,9 @@ emptyBackground =
 
 
 areas : GameLevel -> List (Area Msg)
-areas { map, groundPattern, visionData } =
+areas { groundPattern, visionData } =
     let
+        imagePath = assetsPath ++ "Graphic/"
         vision =
             Dict.toList visionData.visionMemory
 
@@ -252,7 +278,7 @@ areas { map, groundPattern, visionData } =
     [ PixelEngine.tiledArea
         { rows = boardSize
         , tileset =
-            { source = "tileset.png"
+            { source = imagePath ++"tileset.png"
             , spriteWidth = tileSize
             , spriteHeight = tileSize
             }
@@ -260,7 +286,7 @@ areas { map, groundPattern, visionData } =
             PixelEngine.imageBackground
                 { height = width
                 , width = width
-                , source = "background.png"
+                , source = imagePath++"background.png"
                 }
         }
         --Show player and the chart it locates in.
@@ -358,6 +384,9 @@ keyboardControls keyCode =
         "KeyD" ->
             inputMsg InputRight
 
+        "KeyZ" ->
+            Undo   
+
         "Escape" ->
             Exit
 
@@ -427,6 +456,7 @@ levelGenerator { map, groundPattern, name, objectsLayout } =
     , name = name
     , visionData = updateVision map objectsLayout (VisionElements Dict.empty [])
     , objectsLayout = objectsLayout
+    , gameRecords = []
     }
 
 
