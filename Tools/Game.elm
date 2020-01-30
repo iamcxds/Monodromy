@@ -18,6 +18,7 @@ type Msg
     = Move At.Direction
     | Exit
     | Undo
+    | Reset
     | NoChange
 
 
@@ -35,11 +36,13 @@ type alias VisionElements =
     , shadows : List Position
     }
 
+
 type alias GameState =
-    {
-      visionData : VisionElements
-    , objectsLayout : Obj.ObjectsLayout  
+    { visionData : VisionElements
+    , objectsLayout : Obj.ObjectsLayout
     }
+
+
 type alias GameLevel =
     { map : At.Atlas
 
@@ -104,25 +107,43 @@ update msg gameLevel =
                     let
                         newVisionData =
                             updateVision gameLevel.map newLayout gameLevel.visionData
-                        oldState = GameState gameLevel.visionData gameLevel.objectsLayout
+
+                        oldState =
+                            GameState gameLevel.visionData gameLevel.objectsLayout
                     in
-                    { gameLevel | objectsLayout = newLayout
-                                , visionData = newVisionData
-                                , gameRecords = oldState :: gameLevel.gameRecords }
+                    { gameLevel
+                        | objectsLayout = newLayout
+                        , visionData = newVisionData
+                        , gameRecords = oldState :: gameLevel.gameRecords
+                    }
 
                 _ ->
                     gameLevel
-        Undo -> 
+
+        Undo ->
             case gameLevel.gameRecords of
-                [] -> gameLevel
-                    
-            
-                x::xs ->
-                    { gameLevel | objectsLayout = x.objectsLayout
-                                , visionData = x.visionData
-                                , gameRecords = xs }
-                    
-            
+                [] ->
+                    gameLevel
+
+                x :: xs ->
+                    { gameLevel
+                        | objectsLayout = x.objectsLayout
+                        , visionData = x.visionData
+                        , gameRecords = xs
+                    }
+
+        Reset ->
+            case List.reverse gameLevel.gameRecords of
+                [] ->
+                    gameLevel
+
+                x :: _ ->
+                    { gameLevel
+                        | objectsLayout = x.objectsLayout
+                        , visionData = x.visionData
+                        , gameRecords = []
+                    }
+
         _ ->
             gameLevel
 
@@ -192,30 +213,33 @@ shadowTile =
         |> Tile.movable "shadow"
         |> Tile.jumping
 
+
 assetsPath : String
-assetsPath = "Assets/"
+assetsPath =
+    "Assets/"
+
 
 controlsImage : String -> Image Msg
 controlsImage keyName =
     let
-        path = assetsPath ++ "Graphic/ControlButtons/"
+        path =
+            assetsPath ++ "Graphic/ControlButtons/"
     in
-    
     case keyName of
         "Up" ->
-            Image.fromSrc (path ++"Up.png")
+            Image.fromSrc (path ++ "Up.png")
                 |> Image.clickable (inputMsg InputUp)
 
         "Down" ->
-            Image.fromSrc (path ++"Down.png")
+            Image.fromSrc (path ++ "Down.png")
                 |> Image.clickable (inputMsg InputDown)
 
         "Left" ->
-            Image.fromSrc (path ++"Left.png")
+            Image.fromSrc (path ++ "Left.png")
                 |> Image.clickable (inputMsg InputLeft)
 
         "Right" ->
-            Image.fromSrc (path ++"Right.png")
+            Image.fromSrc (path ++ "Right.png")
                 |> Image.clickable (inputMsg InputRight)
 
         _ ->
@@ -254,7 +278,9 @@ emptyBackground =
 areas : GameLevel -> List (Area Msg)
 areas { groundPattern, visionData } =
     let
-        imagePath = assetsPath ++ "Graphic/"
+        imagePath =
+            assetsPath ++ "Graphic/"
+
         vision =
             Dict.toList visionData.visionMemory
 
@@ -278,7 +304,7 @@ areas { groundPattern, visionData } =
     [ PixelEngine.tiledArea
         { rows = boardSize
         , tileset =
-            { source = imagePath ++"tileset.png"
+            { source = imagePath ++ "tileset.png"
             , spriteWidth = tileSize
             , spriteHeight = tileSize
             }
@@ -286,7 +312,7 @@ areas { groundPattern, visionData } =
             PixelEngine.imageBackground
                 { height = width
                 , width = width
-                , source = imagePath++"background.png"
+                , source = imagePath ++ "background.png"
                 }
         }
         --Show player and the chart it locates in.
@@ -385,7 +411,10 @@ keyboardControls keyCode =
             inputMsg InputRight
 
         "KeyZ" ->
-            Undo   
+            Undo
+
+        "KeyR" ->
+            Reset
 
         "Escape" ->
             Exit
@@ -413,7 +442,9 @@ gameView level =
         ]
         [ div [ style "width" "320px", style "margin" "0 auto" ]
             [ button [ Events.onClick Exit ] [ Html.text "Back to Menu" ]
-            , button [ Events.onClick Undo ] [ Html.text "Undo" ]   ]
+            , button [ Events.onClick Undo ] [ Html.text "Undo" ]
+            , button [ Events.onClick Reset ] [ Html.text "Reset" ]
+            ]
         , toHtml cfg playGroud
         ]
 
