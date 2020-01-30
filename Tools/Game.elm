@@ -412,7 +412,8 @@ gameView level =
          -}
         ]
         [ div [ style "width" "320px", style "margin" "0 auto" ]
-            [ button [ Events.onClick Exit ] [ Html.text "Back to Menu" ] ]
+            [ button [ Events.onClick Exit ] [ Html.text "Back to Menu" ]
+            , button [ Events.onClick Undo ] [ Html.text "Undo" ]   ]
         , toHtml cfg playGroud
         ]
 
