@@ -495,7 +495,10 @@ levelGenerator { map, groundPattern, name, objectsLayout } =
 defaultLayout1 : Obj.ObjectsLayout
 defaultLayout1 =
     invokObjectsByList
-        [ ( "Player", 0, At.GlobalPos 0 ( 4, 4 ) ), ( "Crate", 0, At.GlobalPos 0 ( 5, 4 ) ), ( "Crate", 1, At.GlobalPos 0 ( 6, 4 ) ) ]
+        [ ( "Player", 0, At.GlobalPos 0 ( 4, 4 ) )
+        , ( "Crate", 0, At.GlobalPos 0 ( 5, 4 ) )
+        , ( "Crate", 1, At.GlobalPos 0 ( 6, 4 ) )
+        ,( "Player", 1, At.GlobalPos 0 ( 7, 4 ) ) ]
 
 
 myLevels : List GameLevel
