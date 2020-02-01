@@ -7548,6 +7548,7 @@ var $author$project$Tools$Game$divDefautStyle = _List_fromArray(
 		A2($elm$html$Html$Attributes$style, 'background-color', 'white')
 	]);
 var $elm$html$Html$br = _VirtualDom_node('br');
+var $author$project$Tools$Game$generalGuide = 'Use the arrow Keys or WASD to move, Z to undo and R to reset';
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $author$project$Tools$Game$information = function (_v0) {
@@ -7561,7 +7562,9 @@ var $author$project$Tools$Game$information = function (_v0) {
 			]) : _List_Nil,
 		_List_fromArray(
 			[
-				$elm$html$Html$text(introduction)
+				$elm$html$Html$text(introduction),
+				A2($elm$html$Html$br, _List_Nil, _List_Nil),
+				$elm$html$Html$text($author$project$Tools$Game$generalGuide)
 			]));
 };
 var $Orasund$pixelengine$PixelEngine$Graphics$Data$Options$Options = function (a) {
