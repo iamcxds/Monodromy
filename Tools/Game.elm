@@ -54,6 +54,8 @@ type alias GameLevel =
     , visionData : VisionElements
     , objectsLayout : Obj.ObjectsLayout
     , gameRecords : List GameState
+    , introduction : String
+    , isWin : Bool
     }
 
 
@@ -440,13 +442,46 @@ gameView level =
             , style "outline" "none"
          -}
         ]
-        [ div [ style "width" "320px", style "margin" "0 auto" ]
+        [ div divDefautStyle
             [ button [ Events.onClick Exit ] [ Html.text "Back to Menu" ]
             , button [ Events.onClick Undo ] [ Html.text "Undo" ]
             , button [ Events.onClick Reset ] [ Html.text "Reset" ]
             ]
         , toHtml cfg playGroud
+        , div textDivDefautStyle
+            [ Html.p [] (information level)
+            ]
         ]
+
+
+information : GameLevel -> List (Html Msg)
+information { introduction, isWin } =
+    (if isWin then
+        [ Html.text "Congratulations, you won!", Html.br [] [] ]
+
+     else
+        []
+    )
+        ++ [ Html.text introduction  ]
+
+
+divDefautStyle : List (Html.Attribute Msg)
+divDefautStyle =
+    [ style "width" "320px"
+    , style "margin" "0 auto"
+    , style "overflow" "auto"
+    , style "background-color" "white"
+    ]
+
+
+textDivDefautStyle : List (Html.Attribute Msg)
+textDivDefautStyle =
+    [ style "width" "500px"
+    , style "height" "110px"
+    , style "margin" "0 auto"
+    , style "overflow" "auto"
+    , style "background-color" "white"
+    ]
 
 
 getMapByName : String -> At.Atlas
@@ -454,25 +489,37 @@ getMapByName name =
     Maybe.withDefault At.emptyMap (Dict.get name At.mapDict)
 
 
-invokObject : String -> Int -> At.GlobalPos -> List ( ( String, Int ), ( Obj.Object, At.GlobalPos ) )
-invokObject name id gP =
+invokObject : String -> Int -> At.GlobalPos -> Maybe Int -> List ( ( String, Int ), ( Obj.Object, At.GlobalPos ) )
+invokObject name id gP mgrpId =
     let
         mObj =
             Dict.get name Obj.objDict
     in
     case mObj of
         Just obj ->
-            [ ( ( name, id ), ( obj, gP ) ) ]
+            case mgrpId of
+                Nothing ->
+                    [ ( ( name, id ), ( obj, gP ) ) ]
+
+                Just grpId ->
+                    [ ( ( name, id ), ( Obj.addObjInGrp grpId obj, gP ) ) ]
 
         _ ->
             []
 
 
-invokObjectsByList : List ( String, Int, At.GlobalPos ) -> Obj.ObjectsLayout
-invokObjectsByList list0 =
-    List.map (\( name, id, gP ) -> invokObject name id gP) list0
-        |> List.concat
-        |> Dict.fromList
+invokObjectsByList : List ( String, Int, At.GlobalPos ) -> List ( ( String, Int ), At.GlobalPos, Int ) -> Obj.ObjectsLayout
+invokObjectsByList listNoGrp listWithGrp =
+    let
+        resNoGrp =
+            List.map (\( name, id, gP ) -> invokObject name id gP Nothing) listNoGrp
+                |> List.concat
+
+        resWithGrp =
+            List.map (\( ( name, id ), gP, grpId ) -> invokObject name id gP (Just grpId)) listWithGrp
+                |> List.concat
+    in
+    Dict.fromList (resNoGrp ++ resWithGrp)
 
 
 levelGenerator :
@@ -480,15 +527,18 @@ levelGenerator :
     , name : String
     , groundPattern : At.GlobalPos -> Int
     , objectsLayout : Obj.ObjectsLayout
+    , introduction : String
     }
     -> GameLevel
-levelGenerator { map, groundPattern, name, objectsLayout } =
+levelGenerator { map, groundPattern, name, objectsLayout, introduction } =
     { map = map
     , groundPattern = groundPattern
     , name = name
     , visionData = updateVision map objectsLayout (VisionElements Dict.empty [])
     , objectsLayout = objectsLayout
     , gameRecords = []
+    , introduction = introduction
+    , isWin = False
     }
 
 
@@ -496,9 +546,13 @@ defaultLayout1 : Obj.ObjectsLayout
 defaultLayout1 =
     invokObjectsByList
         [ ( "Player", 0, At.GlobalPos 0 ( 4, 4 ) )
-        , ( "Crate", 0, At.GlobalPos 0 ( 5, 4 ) )
-        , ( "Crate", 1, At.GlobalPos 0 ( 6, 4 ) )
-        ,( "Player", 1, At.GlobalPos 0 ( 7, 4 ) ) ]
+        , ( "Crate", 2, At.GlobalPos 0 ( 6, 4 ) )
+
+        --, ( "Player", 1, At.GlobalPos 0 ( 7, 4 ) )
+        ]
+        [ ( ( "Crate", 0 ), At.GlobalPos 0 ( 5, 4 ), 0 )
+        , ( ( "Crate", 1 ), At.GlobalPos 1 ( 5, 4 ), 0 )
+        ]
 
 
 myLevels : List GameLevel
@@ -508,15 +562,18 @@ myLevels =
           , groundPattern = \gP -> gP.chartId
           , name = "Square Root"
           , objectsLayout = defaultLayout1
+          , introduction = " This is a level"
           }
         , { map = getMapByName "EllipticCurve"
           , groundPattern = \gP -> gP.chartId
           , name = "Elliptic Curve"
           , objectsLayout = defaultLayout1
+          , introduction = " This is a level"
           }
         , { map = getMapByName "SquareSquareRoot"
           , groundPattern = \gP -> gP.chartId
           , name = "(y^2+1)^2=x"
           , objectsLayout = defaultLayout1
+          , introduction = " This is a level"
           }
         ]

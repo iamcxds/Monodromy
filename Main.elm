@@ -75,12 +75,19 @@ view model =
             Html.map FromGame (Game.gameView level)
 
         Menu ->
-            div [ style "width" "320px", style "margin" "0 auto" ]
+            div divDefautStyle
                 [ span [] [ Html.text "Select the scene" ]
                 , ul [ style "list-style-type" "none", style "overflow" "auto" ]
                     (List.map selectLevelButton Game.myLevels)
                 ]
 
+divDefautStyle : List (Html.Attribute Msg)
+divDefautStyle =
+    [ style "width" "320px"
+    , style "margin" "0 auto"
+    , style "overflow" "auto"
+    , style "background-color" "white"
+    ]
 
 selectLevelButton : Game.GameLevel -> Html Msg
 selectLevelButton level =

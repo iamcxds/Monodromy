@@ -5190,46 +5190,70 @@ var $author$project$Main$init = function (_v0) {
 var $author$project$Main$FromGame = function (a) {
 	return {$: 'FromGame', a: a};
 };
-var $author$project$Tools$Atlas$E = {$: 'E'};
+var $elm$json$Json$Decode$field = _Json_decodeField;
 var $author$project$Tools$Game$Exit = {$: 'Exit'};
+var $Orasund$pixelengine$PixelEngine$InputDown = {$: 'InputDown'};
+var $Orasund$pixelengine$PixelEngine$InputLeft = {$: 'InputLeft'};
+var $Orasund$pixelengine$PixelEngine$InputRight = {$: 'InputRight'};
+var $Orasund$pixelengine$PixelEngine$InputUp = {$: 'InputUp'};
+var $author$project$Tools$Game$NoChange = {$: 'NoChange'};
+var $author$project$Tools$Game$Reset = {$: 'Reset'};
+var $author$project$Tools$Game$Undo = {$: 'Undo'};
+var $author$project$Tools$Atlas$E = {$: 'E'};
 var $author$project$Tools$Game$Move = function (a) {
 	return {$: 'Move', a: a};
 };
 var $author$project$Tools$Atlas$N = {$: 'N'};
-var $author$project$Tools$Game$NoChange = {$: 'NoChange'};
 var $author$project$Tools$Atlas$S = {$: 'S'};
 var $author$project$Tools$Atlas$W = {$: 'W'};
-var $author$project$Tools$Game$controls = function (keyCode) {
+var $author$project$Tools$Game$inputMsg = function (input) {
+	switch (input.$) {
+		case 'InputLeft':
+			return $author$project$Tools$Game$Move($author$project$Tools$Atlas$W);
+		case 'InputRight':
+			return $author$project$Tools$Game$Move($author$project$Tools$Atlas$E);
+		case 'InputUp':
+			return $author$project$Tools$Game$Move($author$project$Tools$Atlas$N);
+		case 'InputDown':
+			return $author$project$Tools$Game$Move($author$project$Tools$Atlas$S);
+		default:
+			return $author$project$Tools$Game$NoChange;
+	}
+};
+var $author$project$Tools$Game$keyboardControls = function (keyCode) {
 	switch (keyCode) {
 		case 'ArrowUp':
-			return $author$project$Tools$Game$Move($author$project$Tools$Atlas$N);
+			return $author$project$Tools$Game$inputMsg($Orasund$pixelengine$PixelEngine$InputUp);
 		case 'ArrowDown':
-			return $author$project$Tools$Game$Move($author$project$Tools$Atlas$S);
+			return $author$project$Tools$Game$inputMsg($Orasund$pixelengine$PixelEngine$InputDown);
 		case 'ArrowLeft':
-			return $author$project$Tools$Game$Move($author$project$Tools$Atlas$W);
+			return $author$project$Tools$Game$inputMsg($Orasund$pixelengine$PixelEngine$InputLeft);
 		case 'ArrowRight':
-			return $author$project$Tools$Game$Move($author$project$Tools$Atlas$E);
+			return $author$project$Tools$Game$inputMsg($Orasund$pixelengine$PixelEngine$InputRight);
 		case 'KeyW':
-			return $author$project$Tools$Game$Move($author$project$Tools$Atlas$N);
+			return $author$project$Tools$Game$inputMsg($Orasund$pixelengine$PixelEngine$InputUp);
 		case 'KeyS':
-			return $author$project$Tools$Game$Move($author$project$Tools$Atlas$S);
+			return $author$project$Tools$Game$inputMsg($Orasund$pixelengine$PixelEngine$InputDown);
 		case 'KeyA':
-			return $author$project$Tools$Game$Move($author$project$Tools$Atlas$W);
+			return $author$project$Tools$Game$inputMsg($Orasund$pixelengine$PixelEngine$InputLeft);
 		case 'KeyD':
-			return $author$project$Tools$Game$Move($author$project$Tools$Atlas$E);
+			return $author$project$Tools$Game$inputMsg($Orasund$pixelengine$PixelEngine$InputRight);
+		case 'KeyZ':
+			return $author$project$Tools$Game$Undo;
+		case 'KeyR':
+			return $author$project$Tools$Game$Reset;
 		case 'Escape':
 			return $author$project$Tools$Game$Exit;
 		default:
 			return $author$project$Tools$Game$NoChange;
 	}
 };
-var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$string = _Json_decodeString;
 var $author$project$Main$keyDecoder = A2(
 	$elm$json$Json$Decode$map,
 	function (a) {
 		return $author$project$Main$FromGame(
-			$author$project$Tools$Game$controls(a));
+			$author$project$Tools$Game$keyboardControls(a));
 	},
 	A2($elm$json$Json$Decode$field, 'code', $elm$json$Json$Decode$string));
 var $elm$browser$Browser$Events$Document = {$: 'Document'};
@@ -5639,6 +5663,17 @@ var $author$project$Main$subscriptions = function (_v0) {
 var $author$project$Main$Play = function (a) {
 	return {$: 'Play', a: a};
 };
+var $author$project$Tools$Game$GameState = F2(
+	function (visionData, objectsLayout) {
+		return {objectsLayout: objectsLayout, visionData: visionData};
+	});
+var $author$project$Tools$GameObject$ConnectGroup = function (a) {
+	return {$: 'ConnectGroup', a: a};
+};
+var $elm$core$Basics$always = F2(
+	function (a, _v0) {
+		return a;
+	});
 var $elm$core$Dict$filter = F2(
 	function (isGood, dict) {
 		return A3(
@@ -5650,19 +5685,6 @@ var $elm$core$Dict$filter = F2(
 			$elm$core$Dict$empty,
 			dict);
 	});
-var $elm$core$Set$Set_elm_builtin = function (a) {
-	return {$: 'Set_elm_builtin', a: a};
-};
-var $elm$core$Set$empty = $elm$core$Set$Set_elm_builtin($elm$core$Dict$empty);
-var $elm$core$Set$insert = F2(
-	function (key, _v0) {
-		var dict = _v0.a;
-		return $elm$core$Set$Set_elm_builtin(
-			A3($elm$core$Dict$insert, key, _Utils_Tuple0, dict));
-	});
-var $elm$core$Set$fromList = function (list) {
-	return A3($elm$core$List$foldl, $elm$core$Set$insert, $elm$core$Set$empty, list);
-};
 var $elm$core$List$any = F2(
 	function (isOkay, list) {
 		any:
@@ -5694,9 +5716,90 @@ var $elm$core$List$member = F2(
 			xs);
 	});
 var $author$project$Tools$Atlas$pX = $elm$core$Tuple$first;
+var $author$project$Tools$GameObject$getObjByProp = F2(
+	function (prop, layout) {
+		return A2(
+			$elm$core$Dict$filter,
+			F2(
+				function (_v0, o) {
+					return A2(
+						$elm$core$List$member,
+						prop,
+						$author$project$Tools$Atlas$pX(o).properties);
+				}),
+			layout);
+	});
+var $elm$core$Dict$map = F2(
+	function (func, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return $elm$core$Dict$RBEmpty_elm_builtin;
+		} else {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				color,
+				key,
+				A2(func, key, value),
+				A2($elm$core$Dict$map, func, left),
+				A2($elm$core$Dict$map, func, right));
+		}
+	});
+var $author$project$Tools$GameObject$maximalConnectGrp = 10;
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
+var $author$project$Tools$Atlas$pY = $elm$core$Tuple$second;
+var $author$project$Tools$GameObject$generateExObjs = function (layout) {
+	var objInConnectGrp = function (id) {
+		return A2(
+			$elm$core$Dict$map,
+			$elm$core$Basics$always($author$project$Tools$Atlas$pY),
+			A2(
+				$author$project$Tools$GameObject$getObjByProp,
+				$author$project$Tools$GameObject$ConnectGroup(id),
+				layout));
+	};
+	return A2(
+		$elm$core$List$map,
+		objInConnectGrp,
+		A2($elm$core$List$range, 0, $author$project$Tools$GameObject$maximalConnectGrp));
+};
+var $author$project$Tools$GameObject$You = {$: 'You'};
+var $elm$core$Dict$singleton = F2(
+	function (key, value) {
+		return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
+	});
+var $author$project$Tools$GameObject$generatePlayer = function (layout) {
+	var singlePlayer = function (_v0) {
+		var names = _v0.a;
+		var _v1 = _v0.b;
+		var gP = _v1.b;
+		return A2($elm$core$Dict$singleton, names, gP);
+	};
+	var objIsYou = $elm$core$Dict$toList(
+		A2($author$project$Tools$GameObject$getObjByProp, $author$project$Tools$GameObject$You, layout));
+	return A2($elm$core$List$map, singlePlayer, objIsYou);
+};
+var $elm$core$Set$Set_elm_builtin = function (a) {
+	return {$: 'Set_elm_builtin', a: a};
+};
+var $elm$core$Set$empty = $elm$core$Set$Set_elm_builtin($elm$core$Dict$empty);
+var $elm$core$Set$insert = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A3($elm$core$Dict$insert, key, _Utils_Tuple0, dict));
+	});
+var $elm$core$Set$fromList = function (list) {
+	return A3($elm$core$List$foldl, $elm$core$Set$insert, $elm$core$Set$empty, list);
+};
 var $author$project$Tools$GameObject$Push = {$: 'Push'};
 var $author$project$Tools$GameObject$Stop = {$: 'Stop'};
-var $author$project$Tools$GameObject$You = {$: 'You'};
 var $author$project$Tools$GameObject$propertyList = _List_fromArray(
 	[$author$project$Tools$GameObject$You, $author$project$Tools$GameObject$Stop, $author$project$Tools$GameObject$Push]);
 var $author$project$Tools$GameObject$generatePropSets = function (layout) {
@@ -5706,16 +5809,7 @@ var $author$project$Tools$GameObject$generatePropSets = function (layout) {
 				ind,
 				$elm$core$Set$fromList(
 					$elm$core$Dict$keys(
-						A2(
-							$elm$core$Dict$filter,
-							F2(
-								function (_v0, o) {
-									return A2(
-										$elm$core$List$member,
-										prop,
-										$author$project$Tools$Atlas$pX(o).properties);
-								}),
-							layout))));
+						A2($author$project$Tools$GameObject$getObjByProp, prop, layout))));
 		});
 	return $elm$core$Dict$fromList(
 		A2($elm$core$List$indexedMap, objWith, $author$project$Tools$GameObject$propertyList));
@@ -5760,199 +5854,6 @@ var $elm$core$Maybe$map = F2(
 		} else {
 			return $elm$core$Maybe$Nothing;
 		}
-	});
-var $elm$core$Set$foldl = F3(
-	function (func, initialState, _v0) {
-		var dict = _v0.a;
-		return A3(
-			$elm$core$Dict$foldl,
-			F3(
-				function (key, _v1, state) {
-					return A2(func, key, state);
-				}),
-			initialState,
-			dict);
-	});
-var $elm$core$Tuple$second = function (_v0) {
-	var y = _v0.b;
-	return y;
-};
-var $author$project$Tools$Atlas$pY = $elm$core$Tuple$second;
-var $author$project$Tools$GameObject$getObjByGP = F2(
-	function (gP, layout) {
-		return $elm$core$Dict$keys(
-			A2(
-				$elm$core$Dict$filter,
-				F2(
-					function (_v0, o) {
-						return _Utils_eq(
-							$author$project$Tools$Atlas$pY(o),
-							gP);
-					}),
-				layout));
-	});
-var $elm$core$Dict$member = F2(
-	function (key, dict) {
-		var _v0 = A2($elm$core$Dict$get, key, dict);
-		if (_v0.$ === 'Just') {
-			return true;
-		} else {
-			return false;
-		}
-	});
-var $elm$core$Dict$intersect = F2(
-	function (t1, t2) {
-		return A2(
-			$elm$core$Dict$filter,
-			F2(
-				function (k, _v0) {
-					return A2($elm$core$Dict$member, k, t2);
-				}),
-			t1);
-	});
-var $elm$core$Set$intersect = F2(
-	function (_v0, _v1) {
-		var dict1 = _v0.a;
-		var dict2 = _v1.a;
-		return $elm$core$Set$Set_elm_builtin(
-			A2($elm$core$Dict$intersect, dict1, dict2));
-	});
-var $elm$core$Dict$isEmpty = function (dict) {
-	if (dict.$ === 'RBEmpty_elm_builtin') {
-		return true;
-	} else {
-		return false;
-	}
-};
-var $elm$core$Set$isEmpty = function (_v0) {
-	var dict = _v0.a;
-	return $elm$core$Dict$isEmpty(dict);
-};
-var $author$project$Tools$Atlas$GlobalPos = F2(
-	function (chartId, pos) {
-		return {chartId: chartId, pos: pos};
-	});
-var $author$project$Tools$Atlas$HalfEdge = F3(
-	function (chartId, pos, dir) {
-		return {chartId: chartId, dir: dir, pos: pos};
-	});
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
-var $author$project$Tools$Atlas$d2V = function (dir) {
-	switch (dir.$) {
-		case 'N':
-			return _Utils_Tuple2(0, -1);
-		case 'S':
-			return _Utils_Tuple2(0, 1);
-		case 'E':
-			return _Utils_Tuple2(1, 0);
-		default:
-			return _Utils_Tuple2(-1, 0);
-	}
-};
-var $elm$core$List$filter = F2(
-	function (isGood, list) {
-		return A3(
-			$elm$core$List$foldr,
-			F2(
-				function (x, xs) {
-					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
-				}),
-			_List_Nil,
-			list);
-	});
-var $elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(x);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
-var $elm$core$Basics$not = _Basics_not;
-var $author$project$Tools$Atlas$pAdd = F2(
-	function (_v0, _v1) {
-		var a = _v0.a;
-		var b = _v0.b;
-		var c = _v1.a;
-		var d = _v1.b;
-		return _Utils_Tuple2(a + c, b + d);
-	});
-var $author$project$Tools$Atlas$tryMove = F3(
-	function (atl, _v0, dir) {
-		var chartId = _v0.chartId;
-		var pos = _v0.pos;
-		var tP = A2(
-			$author$project$Tools$Atlas$pAdd,
-			$author$project$Tools$Atlas$d2V(dir),
-			pos);
-		var notMoveResult = $elm$core$Result$Ok(
-			_Utils_Tuple2(
-				false,
-				A2($author$project$Tools$Atlas$GlobalPos, chartId, pos)));
-		var mcha = A2($elm$core$Dict$get, chartId, atl.charts);
-		var hE = A3($author$project$Tools$Atlas$HalfEdge, chartId, pos, dir);
-		if (mcha.$ === 'Nothing') {
-			return $elm$core$Result$Err('Can not find the chart');
-		} else {
-			var cha = mcha.a;
-			if (A2($elm$core$List$member, pos, cha.blocks)) {
-				if ((!A2($elm$core$List$member, tP, cha.blocks)) || A2($elm$core$List$member, hE, cha.gaps)) {
-					var isFromHere = function (eL) {
-						return _Utils_eq(eL.from, hE);
-					};
-					var mlK = $elm$core$List$head(
-						A2($elm$core$List$filter, isFromHere, atl.links));
-					if (mlK.$ === 'Nothing') {
-						return notMoveResult;
-					} else {
-						var lK = mlK.a;
-						var mTargetChart = A2($elm$core$Dict$get, lK.to.chartId, atl.charts);
-						if (mTargetChart.$ === 'Nothing') {
-							return notMoveResult;
-						} else {
-							var tChart = mTargetChart.a;
-							return A2($elm$core$List$member, lK.to.pos, tChart.blocks) ? $elm$core$Result$Ok(
-								_Utils_Tuple2(
-									true,
-									A2($author$project$Tools$Atlas$GlobalPos, lK.to.chartId, lK.to.pos))) : notMoveResult;
-						}
-					}
-				} else {
-					return $elm$core$Result$Ok(
-						_Utils_Tuple2(
-							true,
-							A2($author$project$Tools$Atlas$GlobalPos, chartId, tP)));
-				}
-			} else {
-				return $elm$core$Result$Err('Position is out of chart');
-			}
-		}
-	});
-var $elm$core$Result$withDefault = F2(
-	function (def, result) {
-		if (result.$ === 'Ok') {
-			var a = result.a;
-			return a;
-		} else {
-			return def;
-		}
-	});
-var $author$project$Tools$Atlas$tryMoveSimple = F3(
-	function (atl, gP, dir) {
-		return A2(
-			$elm$core$Result$withDefault,
-			_Utils_Tuple2(false, gP),
-			A3($author$project$Tools$Atlas$tryMove, atl, gP, dir));
-	});
-var $elm$core$Set$union = F2(
-	function (_v0, _v1) {
-		var dict1 = _v0.a;
-		var dict2 = _v1.a;
-		return $elm$core$Set$Set_elm_builtin(
-			A2($elm$core$Dict$union, dict1, dict2));
 	});
 var $elm$core$Dict$getMin = function (dict) {
 	getMin:
@@ -6316,6 +6217,472 @@ var $elm$core$Dict$remove = F2(
 			return x;
 		}
 	});
+var $elm$core$Dict$diff = F2(
+	function (t1, t2) {
+		return A3(
+			$elm$core$Dict$foldl,
+			F3(
+				function (k, v, t) {
+					return A2($elm$core$Dict$remove, k, t);
+				}),
+			t1,
+			t2);
+	});
+var $elm$core$Set$diff = F2(
+	function (_v0, _v1) {
+		var dict1 = _v0.a;
+		var dict2 = _v1.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A2($elm$core$Dict$diff, dict1, dict2));
+	});
+var $author$project$Tools$GameObject$getObjByGP = F2(
+	function (gP, layout) {
+		return $elm$core$Dict$keys(
+			A2(
+				$elm$core$Dict$filter,
+				F2(
+					function (_v0, o) {
+						return _Utils_eq(
+							$author$project$Tools$Atlas$pY(o),
+							gP);
+					}),
+				layout));
+	});
+var $elm$core$Tuple$mapSecond = F2(
+	function (func, _v0) {
+		var x = _v0.a;
+		var y = _v0.b;
+		return _Utils_Tuple2(
+			x,
+			func(y));
+	});
+var $author$project$Tools$Atlas$GlobalPos = F2(
+	function (chartId, pos) {
+		return {chartId: chartId, pos: pos};
+	});
+var $author$project$Tools$Atlas$HalfEdge = F3(
+	function (chartId, pos, dir) {
+		return {chartId: chartId, dir: dir, pos: pos};
+	});
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var $author$project$Tools$Atlas$d2V = function (dir) {
+	switch (dir.$) {
+		case 'N':
+			return _Utils_Tuple2(0, -1);
+		case 'S':
+			return _Utils_Tuple2(0, 1);
+		case 'E':
+			return _Utils_Tuple2(1, 0);
+		default:
+			return _Utils_Tuple2(-1, 0);
+	}
+};
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm$core$Basics$not = _Basics_not;
+var $author$project$Tools$Atlas$pAdd = F2(
+	function (_v0, _v1) {
+		var a = _v0.a;
+		var b = _v0.b;
+		var c = _v1.a;
+		var d = _v1.b;
+		return _Utils_Tuple2(a + c, b + d);
+	});
+var $author$project$Tools$Atlas$tryMove = F3(
+	function (atl, _v0, dir) {
+		var chartId = _v0.chartId;
+		var pos = _v0.pos;
+		var tP = A2(
+			$author$project$Tools$Atlas$pAdd,
+			$author$project$Tools$Atlas$d2V(dir),
+			pos);
+		var notMoveResult = $elm$core$Result$Ok(
+			_Utils_Tuple2(
+				false,
+				A2($author$project$Tools$Atlas$GlobalPos, chartId, pos)));
+		var mcha = A2($elm$core$Dict$get, chartId, atl.charts);
+		var hE = A3($author$project$Tools$Atlas$HalfEdge, chartId, pos, dir);
+		if (mcha.$ === 'Nothing') {
+			return $elm$core$Result$Err('Can not find the chart');
+		} else {
+			var cha = mcha.a;
+			if (A2($elm$core$List$member, pos, cha.blocks)) {
+				if ((!A2($elm$core$List$member, tP, cha.blocks)) || A2($elm$core$List$member, hE, cha.gaps)) {
+					var isFromHere = function (eL) {
+						return _Utils_eq(eL.from, hE);
+					};
+					var mlK = $elm$core$List$head(
+						A2($elm$core$List$filter, isFromHere, atl.links));
+					if (mlK.$ === 'Nothing') {
+						return notMoveResult;
+					} else {
+						var lK = mlK.a;
+						var mTargetChart = A2($elm$core$Dict$get, lK.to.chartId, atl.charts);
+						if (mTargetChart.$ === 'Nothing') {
+							return notMoveResult;
+						} else {
+							var tChart = mTargetChart.a;
+							return A2($elm$core$List$member, lK.to.pos, tChart.blocks) ? $elm$core$Result$Ok(
+								_Utils_Tuple2(
+									true,
+									A2($author$project$Tools$Atlas$GlobalPos, lK.to.chartId, lK.to.pos))) : notMoveResult;
+						}
+					}
+				} else {
+					return $elm$core$Result$Ok(
+						_Utils_Tuple2(
+							true,
+							A2($author$project$Tools$Atlas$GlobalPos, chartId, tP)));
+				}
+			} else {
+				return $elm$core$Result$Err('Position is out of chart');
+			}
+		}
+	});
+var $elm$core$Result$withDefault = F2(
+	function (def, result) {
+		if (result.$ === 'Ok') {
+			var a = result.a;
+			return a;
+		} else {
+			return def;
+		}
+	});
+var $author$project$Tools$Atlas$tryMoveSimple = F3(
+	function (atl, gP, dir) {
+		return A2(
+			$elm$core$Result$withDefault,
+			_Utils_Tuple2(false, gP),
+			A3($author$project$Tools$Atlas$tryMove, atl, gP, dir));
+	});
+var $author$project$Tools$GameObject$integratedMove = F3(
+	function (atl, bigObj, dir) {
+		var _v0 = $elm$core$Dict$toList(bigObj);
+		if (!_v0.b) {
+			return _Utils_Tuple2(true, $elm$core$Dict$empty);
+		} else {
+			var x = _v0.a;
+			var xs = _v0.b;
+			var tGPxs = A3(
+				$author$project$Tools$GameObject$integratedMove,
+				atl,
+				$elm$core$Dict$fromList(xs),
+				dir);
+			var _v1 = A2(
+				$elm$core$Tuple$mapSecond,
+				function (a) {
+					return _Utils_Tuple2(
+						$author$project$Tools$Atlas$pX(x),
+						a);
+				},
+				A3(
+					$author$project$Tools$Atlas$tryMoveSimple,
+					atl,
+					$author$project$Tools$Atlas$pY(x),
+					dir));
+			var canMove = _v1.a;
+			var _v2 = _v1.b;
+			var names = _v2.a;
+			var tGP = _v2.b;
+			return (canMove && $author$project$Tools$Atlas$pX(tGPxs)) ? _Utils_Tuple2(
+				true,
+				A3(
+					$elm$core$Dict$insert,
+					names,
+					tGP,
+					$author$project$Tools$Atlas$pY(tGPxs))) : _Utils_Tuple2(false, bigObj);
+		}
+	});
+var $elm$core$Dict$member = F2(
+	function (key, dict) {
+		var _v0 = A2($elm$core$Dict$get, key, dict);
+		if (_v0.$ === 'Just') {
+			return true;
+		} else {
+			return false;
+		}
+	});
+var $elm$core$Dict$intersect = F2(
+	function (t1, t2) {
+		return A2(
+			$elm$core$Dict$filter,
+			F2(
+				function (k, _v0) {
+					return A2($elm$core$Dict$member, k, t2);
+				}),
+			t1);
+	});
+var $elm$core$Set$intersect = F2(
+	function (_v0, _v1) {
+		var dict1 = _v0.a;
+		var dict2 = _v1.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A2($elm$core$Dict$intersect, dict1, dict2));
+	});
+var $elm$core$Dict$isEmpty = function (dict) {
+	if (dict.$ === 'RBEmpty_elm_builtin') {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $elm$core$Set$isEmpty = function (_v0) {
+	var dict = _v0.a;
+	return $elm$core$Dict$isEmpty(dict);
+};
+var $elm$core$Dict$values = function (dict) {
+	return A3(
+		$elm$core$Dict$foldr,
+		F3(
+			function (key, value, valueList) {
+				return A2($elm$core$List$cons, value, valueList);
+			}),
+		_List_Nil,
+		dict);
+};
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
+var $author$project$Tools$GameObject$integratedMoveAndUpdate = F5(
+	function (atl, bigObj, dir, layout, propSets) {
+		var thingsInBigObj = $elm$core$Set$fromList(
+			$elm$core$Dict$keys(bigObj));
+		var defaultEmpty = $elm$core$Maybe$withDefault($elm$core$Set$empty);
+		var getPropSet = function (ind) {
+			return defaultEmpty(
+				A2($elm$core$Dict$get, ind, propSets));
+		};
+		var filterPush = function (someSet) {
+			return A2(
+				$elm$core$Set$diff,
+				A2(
+					$elm$core$Set$intersect,
+					getPropSet(2),
+					someSet),
+				thingsInBigObj);
+		};
+		var filterStop = function (someSet) {
+			return A2(
+				$elm$core$Set$diff,
+				A2(
+					$elm$core$Set$intersect,
+					getPropSet(1),
+					someSet),
+				thingsInBigObj);
+		};
+		var integratedUpdateByOneGP = F2(
+			function (gP, _v4) {
+				var isUpdated0 = _v4.a;
+				var _v5 = _v4.b;
+				var canMove0 = _v5.a;
+				var bigObj0 = _v5.b;
+				var objsOnGP = $elm$core$Set$fromList(
+					A2($author$project$Tools$GameObject$getObjByGP, gP, layout));
+				var pushOnGP = filterPush(objsOnGP);
+				var stopOnGP = filterStop(objsOnGP);
+				var cannotMoveCase = _Utils_Tuple2(
+					false,
+					_Utils_Tuple2(false, bigObj));
+				if (canMove0) {
+					if ($elm$core$Set$isEmpty(stopOnGP)) {
+						if ($elm$core$Set$isEmpty(pushOnGP)) {
+							return _Utils_Tuple2(
+								false || isUpdated0,
+								_Utils_Tuple2(true, bigObj0));
+						} else {
+							var updatedBigObj = A2(
+								$elm$core$Dict$union,
+								bigObj0,
+								$elm$core$Dict$fromList(
+									A2(
+										$elm$core$List$map,
+										function (a) {
+											return _Utils_Tuple2(a, gP);
+										},
+										$elm$core$Set$toList(pushOnGP))));
+							return _Utils_Tuple2(
+								true,
+								_Utils_Tuple2(true, updatedBigObj));
+						}
+					} else {
+						return cannotMoveCase;
+					}
+				} else {
+					return cannotMoveCase;
+				}
+			});
+		var _v0 = A3($author$project$Tools$GameObject$integratedMove, atl, bigObj, dir);
+		var canMoved = _v0.a;
+		var tObj = _v0.b;
+		var tGPs = $elm$core$Dict$values(tObj);
+		var integratedUpdateByTGPs = A3(
+			$elm$core$List$foldl,
+			integratedUpdateByOneGP,
+			_Utils_Tuple2(
+				false,
+				_Utils_Tuple2(canMoved, bigObj)),
+			tGPs);
+		if (canMoved) {
+			if (integratedUpdateByTGPs.a) {
+				var _v2 = integratedUpdateByTGPs.b;
+				var newBigObj = _v2.b;
+				return _Utils_Tuple2(
+					true,
+					_Utils_Tuple2(false, newBigObj));
+			} else {
+				if (integratedUpdateByTGPs.b.a) {
+					var _v3 = integratedUpdateByTGPs.b;
+					return _Utils_Tuple2(
+						false,
+						_Utils_Tuple2(true, tObj));
+				} else {
+					return _Utils_Tuple2(
+						false,
+						_Utils_Tuple2(false, bigObj));
+				}
+			}
+		} else {
+			return _Utils_Tuple2(
+				false,
+				_Utils_Tuple2(false, bigObj));
+		}
+	});
+var $author$project$Tools$GameObject$orBoolList = function (list) {
+	var result = A2($elm$core$List$map, $author$project$Tools$Atlas$pY, list);
+	var boolList = A2($elm$core$List$map, $author$project$Tools$Atlas$pX, list);
+	var boolRes = A3($elm$core$List$foldl, $elm$core$Basics$or, false, boolList);
+	return _Utils_Tuple2(boolRes, result);
+};
+var $author$project$Tools$GameObject$listIntegratedMoveAndUpdate = F5(
+	function (atl, bigObjs, dir, layout, propSets) {
+		var moveAndUpdateForOneObj = function (obj) {
+			return A5($author$project$Tools$GameObject$integratedMoveAndUpdate, atl, obj, dir, layout, propSets);
+		};
+		var moveAndUpdateList = A2($elm$core$List$map, moveAndUpdateForOneObj, bigObjs);
+		var _v0 = $author$project$Tools$GameObject$orBoolList(moveAndUpdateList);
+		var isUpdateForAll = _v0.a;
+		var movedObjsList = _v0.b;
+		if (isUpdateForAll) {
+			var newMoveResult = function (obj) {
+				return $author$project$Tools$Atlas$pX(
+					moveAndUpdateForOneObj(obj)) ? $author$project$Tools$Atlas$pY(
+					moveAndUpdateForOneObj(obj)) : _Utils_Tuple2(false, obj);
+			};
+			var newMoveList = A2($elm$core$List$map, newMoveResult, bigObjs);
+			return _Utils_Tuple2(true, newMoveList);
+		} else {
+			return _Utils_Tuple2(false, movedObjsList);
+		}
+	});
+var $author$project$Tools$GameObject$mergeIntergratedObjects = function (bigObjList) {
+	if (!bigObjList.b) {
+		return _Utils_Tuple2(false, _List_Nil);
+	} else {
+		var x = bigObjList.a;
+		var xs = bigObjList.b;
+		var oneObjTryMerge = F2(
+			function (obj, list) {
+				if (!list.b) {
+					return _Utils_Tuple2(
+						false,
+						_List_fromArray(
+							[obj]));
+				} else {
+					var y = list.a;
+					var ys = list.b;
+					if ($elm$core$Dict$isEmpty(
+						A2($elm$core$Dict$intersect, obj, y))) {
+						var _v2 = A2(oneObjTryMerge, obj, ys);
+						var isMerged1 = _v2.a;
+						var newys = _v2.b;
+						return _Utils_Tuple2(
+							isMerged1,
+							A2($elm$core$List$cons, y, newys));
+					} else {
+						var newObj = A2($elm$core$Dict$union, obj, y);
+						return _Utils_Tuple2(
+							true,
+							$author$project$Tools$Atlas$pY(
+								A2(oneObjTryMerge, newObj, ys)));
+					}
+				}
+			});
+		var _v3 = $author$project$Tools$GameObject$mergeIntergratedObjects(xs);
+		var isMerged = _v3.a;
+		var newxs = _v3.b;
+		var _v4 = A2(oneObjTryMerge, x, newxs);
+		var isMerged2 = _v4.a;
+		var newList = _v4.b;
+		return _Utils_Tuple2(isMerged || isMerged2, newList);
+	}
+};
+var $elm$core$Tuple$mapFirst = F2(
+	function (func, _v0) {
+		var x = _v0.a;
+		var y = _v0.b;
+		return _Utils_Tuple2(
+			func(x),
+			y);
+	});
+var $author$project$Tools$GameObject$orBoolListFoldl = F3(
+	function (fun, y, xs) {
+		var fun0 = F2(
+			function (x0, _v0) {
+				var v = _v0.a;
+				var y0 = _v0.b;
+				return A2(
+					$elm$core$Tuple$mapFirst,
+					$elm$core$Basics$or(v),
+					A2(fun, x0, y0));
+			});
+		return A3(
+			$elm$core$List$foldl,
+			fun0,
+			_Utils_Tuple2(false, y),
+			xs);
+	});
+var $author$project$Tools$GameObject$tryMergeWithExistedIntegrated = F2(
+	function (bigObjs, objsOnMap) {
+		var twoObjsMerge = F2(
+			function (mObj, obj) {
+				return ($elm$core$Dict$isEmpty(
+					A2($elm$core$Dict$intersect, obj, mObj)) || $elm$core$Dict$isEmpty(
+					A2($elm$core$Dict$diff, mObj, obj))) ? _Utils_Tuple2(false, obj) : _Utils_Tuple2(
+					true,
+					A2($elm$core$Dict$union, obj, mObj));
+			});
+		var oneObjMerge = function (obj) {
+			return A3($author$project$Tools$GameObject$orBoolListFoldl, twoObjsMerge, obj, objsOnMap);
+		};
+		return $author$project$Tools$GameObject$orBoolList(
+			A2($elm$core$List$map, oneObjMerge, bigObjs));
+	});
 var $elm$core$Dict$update = F3(
 	function (targetKey, alter, dictionary) {
 		var _v0 = alter(
@@ -6327,106 +6694,84 @@ var $elm$core$Dict$update = F3(
 			return A2($elm$core$Dict$remove, targetKey, dictionary);
 		}
 	});
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
+var $author$project$Tools$GameObject$updateLayoutByIntegrated = F2(
+	function (_v0, layout) {
+		var isMoved = _v0.a;
+		var bigObject = _v0.b;
+		if (isMoved) {
+			var smallObjs = $elm$core$Dict$toList(bigObject);
+			var oneObjUpdate = F2(
+				function (_v2, layout0) {
+					var name = _v2.a;
+					var gP = _v2.b;
+					return A3(
+						$elm$core$Dict$update,
+						name,
+						$elm$core$Maybe$map(
+							function (_v1) {
+								var obj = _v1.a;
+								return _Utils_Tuple2(obj, gP);
+							}),
+						layout0);
+				});
+			var newLayout = A3($elm$core$List$foldl, oneObjUpdate, layout, smallObjs);
+			return _Utils_Tuple2(true, newLayout);
 		} else {
-			return _default;
+			return _Utils_Tuple2(false, layout);
 		}
 	});
-var $author$project$Tools$GameObject$onePlaceTryMove = F6(
-	function (names, gP, atl, dir, layout, propSets) {
-		onePlaceTryMove:
+var $author$project$Tools$GameObject$moveLikeIntegrated = F6(
+	function (atl, bigObjs, dir, layout, exObjs, propSets) {
+		moveLikeIntegrated:
 		while (true) {
-			var objsOn = function (gP0) {
-				return A2($author$project$Tools$GameObject$getObjByGP, gP0, layout);
-			};
-			var defaultEmpty = $elm$core$Maybe$withDefault($elm$core$Set$empty);
-			var getPropSet = function (ind) {
-				return defaultEmpty(
-					A2($elm$core$Dict$get, ind, propSets));
-			};
-			var filterPush = $elm$core$Set$intersect(
-				getPropSet(2));
-			var filterStop = $elm$core$Set$intersect(
-				getPropSet(1));
-			var defaultCase = _Utils_Tuple2(false, layout);
-			var _v0 = A3($author$project$Tools$Atlas$tryMoveSimple, atl, gP, dir);
-			if (_v0.a) {
-				var tGP = _v0.b;
-				var updateGP = F2(
-					function (_v2, layout0) {
-						var name = _v2.a;
-						var id = _v2.b;
-						return A3(
-							$elm$core$Dict$update,
-							_Utils_Tuple2(name, id),
-							$elm$core$Maybe$map(
-								function (_v1) {
-									var obj = _v1.a;
-									return _Utils_Tuple2(obj, tGP);
-								}),
-							layout0);
-					});
-				var successCase = _Utils_Tuple2(
-					true,
-					A3($elm$core$Set$foldl, updateGP, layout, names));
-				var objOnTGP = $elm$core$Set$fromList(
-					objsOn(tGP));
-				var pushOnTGP = filterPush(objOnTGP);
-				var stopOnTGP = filterStop(objOnTGP);
-				if ($elm$core$Set$isEmpty(stopOnTGP)) {
-					if ($elm$core$Set$isEmpty(pushOnTGP)) {
-						return successCase;
-					} else {
-						var playersAndPushObj = A2($elm$core$Set$union, names, pushOnTGP);
-						var propsAfterTryPush = A3(
-							$elm$core$Dict$update,
-							1,
-							function (stop) {
-								return $elm$core$Maybe$Just(
-									A2(
-										$elm$core$Set$union,
-										playersAndPushObj,
-										defaultEmpty(stop)));
-							},
-							propSets);
-						var layoutAfterTryPush = $author$project$Tools$Atlas$pY(
-							A6($author$project$Tools$GameObject$onePlaceTryMove, pushOnTGP, tGP, atl, dir, layout, propsAfterTryPush));
-						var $temp$names = names,
-							$temp$gP = gP,
-							$temp$atl = atl,
-							$temp$dir = dir,
-							$temp$layout = layoutAfterTryPush,
-							$temp$propSets = propsAfterTryPush;
-						names = $temp$names;
-						gP = $temp$gP;
-						atl = $temp$atl;
-						dir = $temp$dir;
-						layout = $temp$layout;
-						propSets = $temp$propSets;
-						continue onePlaceTryMove;
-					}
-				} else {
-					return defaultCase;
-				}
+			var _v0 = $author$project$Tools$GameObject$mergeIntergratedObjects(bigObjs);
+			var needMerge0 = _v0.a;
+			var newList0 = _v0.b;
+			var _v1 = A2($author$project$Tools$GameObject$tryMergeWithExistedIntegrated, newList0, exObjs);
+			var needMerge1 = _v1.a;
+			var newList = _v1.b;
+			if (needMerge0 || needMerge1) {
+				var $temp$atl = atl,
+					$temp$bigObjs = newList,
+					$temp$dir = dir,
+					$temp$layout = layout,
+					$temp$exObjs = exObjs,
+					$temp$propSets = propSets;
+				atl = $temp$atl;
+				bigObjs = $temp$bigObjs;
+				dir = $temp$dir;
+				layout = $temp$layout;
+				exObjs = $temp$exObjs;
+				propSets = $temp$propSets;
+				continue moveLikeIntegrated;
 			} else {
-				return defaultCase;
+				var _v2 = A5($author$project$Tools$GameObject$listIntegratedMoveAndUpdate, atl, bigObjs, dir, layout, propSets);
+				var isUpdated = _v2.a;
+				var newObjsAndIsMoved = _v2.b;
+				if (isUpdated) {
+					var $temp$atl = atl,
+						$temp$bigObjs = A2($elm$core$List$map, $author$project$Tools$Atlas$pY, newObjsAndIsMoved),
+						$temp$dir = dir,
+						$temp$layout = layout,
+						$temp$exObjs = exObjs,
+						$temp$propSets = propSets;
+					atl = $temp$atl;
+					bigObjs = $temp$bigObjs;
+					dir = $temp$dir;
+					layout = $temp$layout;
+					exObjs = $temp$exObjs;
+					propSets = $temp$propSets;
+					continue moveLikeIntegrated;
+				} else {
+					return A3($author$project$Tools$GameObject$orBoolListFoldl, $author$project$Tools$GameObject$updateLayoutByIntegrated, layout, newObjsAndIsMoved);
+				}
 			}
 		}
 	});
-var $elm$core$Dict$singleton = F2(
-	function (key, value) {
-		return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
-	});
-var $elm$core$Set$singleton = function (key) {
-	return $elm$core$Set$Set_elm_builtin(
-		A2($elm$core$Dict$singleton, key, _Utils_Tuple0));
-};
 var $author$project$Tools$GameObject$onePlayerTryMove = F3(
 	function (atl, dir, layout) {
+		var propSets = $author$project$Tools$GameObject$generatePropSets(layout);
+		var players = $author$project$Tools$GameObject$generatePlayer(layout);
 		var mGP = A2(
 			$elm$core$Maybe$map,
 			$author$project$Tools$Atlas$pY,
@@ -6434,22 +6779,14 @@ var $author$project$Tools$GameObject$onePlayerTryMove = F3(
 				$elm$core$Dict$get,
 				_Utils_Tuple2('Player', 0),
 				layout));
+		var exObjs = $author$project$Tools$GameObject$generateExObjs(layout);
 		return A2(
 			$elm$core$Result$withDefault,
 			_Utils_Tuple2(false, layout),
 			function () {
 				if (mGP.$ === 'Just') {
-					var gP = mGP.a;
 					return $elm$core$Result$Ok(
-						A6(
-							$author$project$Tools$GameObject$onePlaceTryMove,
-							$elm$core$Set$singleton(
-								_Utils_Tuple2('Player', 0)),
-							gP,
-							atl,
-							dir,
-							layout,
-							$author$project$Tools$GameObject$generatePropSets(layout)));
+						A6($author$project$Tools$GameObject$moveLikeIntegrated, atl, players, dir, layout, exObjs, propSets));
 				} else {
 					return $elm$core$Result$Err('Can not find player');
 				}
@@ -6496,10 +6833,6 @@ var $author$project$Tools$Game$allBaseBlocks = A2(
 	$author$project$Tools$Atlas$formRectangle,
 	_Utils_Tuple2(0, 0),
 	_Utils_Tuple2($author$project$Tools$Game$boardSize - 1, $author$project$Tools$Game$boardSize - 1));
-var $elm$core$Basics$always = F2(
-	function (a, _v0) {
-		return a;
-	});
 var $author$project$Tools$Atlas$d2Int = function (dir) {
 	switch (dir.$) {
 		case 'N':
@@ -6752,43 +7085,6 @@ var $author$project$Tools$Atlas$defaultVisableArea = F2(
 			$author$project$Tools$Atlas$globalPos2ViewData(
 				A3($author$project$Tools$Atlas$visableArea, atl, gP0, $author$project$Tools$Atlas$allDirScans)));
 	});
-var $elm$core$Dict$map = F2(
-	function (func, dict) {
-		if (dict.$ === 'RBEmpty_elm_builtin') {
-			return $elm$core$Dict$RBEmpty_elm_builtin;
-		} else {
-			var color = dict.a;
-			var key = dict.b;
-			var value = dict.c;
-			var left = dict.d;
-			var right = dict.e;
-			return A5(
-				$elm$core$Dict$RBNode_elm_builtin,
-				color,
-				key,
-				A2(func, key, value),
-				A2($elm$core$Dict$map, func, left),
-				A2($elm$core$Dict$map, func, right));
-		}
-	});
-var $elm$core$Dict$diff = F2(
-	function (t1, t2) {
-		return A3(
-			$elm$core$Dict$foldl,
-			F3(
-				function (k, v, t) {
-					return A2($elm$core$Dict$remove, k, t);
-				}),
-			t1,
-			t2);
-	});
-var $elm$core$Set$diff = F2(
-	function (_v0, _v1) {
-		var dict1 = _v0.a;
-		var dict2 = _v1.a;
-		return $elm$core$Set$Set_elm_builtin(
-			A2($elm$core$Dict$diff, dict1, dict2));
-	});
 var $author$project$Tools$Atlas$minusOfBlocks = F2(
 	function (base, holes) {
 		return $elm$core$Set$toList(
@@ -6855,20 +7151,47 @@ var $author$project$Tools$Game$updateVision = F3(
 	});
 var $author$project$Tools$Game$update = F2(
 	function (msg, gameLevel) {
-		if (msg.$ === 'Move') {
-			var direction = msg.a;
-			var res = A3($author$project$Tools$GameObject$onePlayerTryMove, gameLevel.map, direction, gameLevel.objectsLayout);
-			if (res.a) {
-				var newLayout = res.b;
-				var newVisionData = A3($author$project$Tools$Game$updateVision, gameLevel.map, newLayout, gameLevel.visionData);
-				return _Utils_update(
-					gameLevel,
-					{objectsLayout: newLayout, visionData: newVisionData});
-			} else {
+		switch (msg.$) {
+			case 'Move':
+				var direction = msg.a;
+				var res = A3($author$project$Tools$GameObject$onePlayerTryMove, gameLevel.map, direction, gameLevel.objectsLayout);
+				if (res.a) {
+					var newLayout = res.b;
+					var oldState = A2($author$project$Tools$Game$GameState, gameLevel.visionData, gameLevel.objectsLayout);
+					var newVisionData = A3($author$project$Tools$Game$updateVision, gameLevel.map, newLayout, gameLevel.visionData);
+					return _Utils_update(
+						gameLevel,
+						{
+							gameRecords: A2($elm$core$List$cons, oldState, gameLevel.gameRecords),
+							objectsLayout: newLayout,
+							visionData: newVisionData
+						});
+				} else {
+					return gameLevel;
+				}
+			case 'Undo':
+				var _v2 = gameLevel.gameRecords;
+				if (!_v2.b) {
+					return gameLevel;
+				} else {
+					var x = _v2.a;
+					var xs = _v2.b;
+					return _Utils_update(
+						gameLevel,
+						{gameRecords: xs, objectsLayout: x.objectsLayout, visionData: x.visionData});
+				}
+			case 'Reset':
+				var _v3 = $elm$core$List$reverse(gameLevel.gameRecords);
+				if (!_v3.b) {
+					return gameLevel;
+				} else {
+					var x = _v3.a;
+					return _Utils_update(
+						gameLevel,
+						{gameRecords: _List_Nil, objectsLayout: x.objectsLayout, visionData: x.visionData});
+				}
+			default:
 				return gameLevel;
-			}
-		} else {
-			return gameLevel;
 		}
 	});
 var $author$project$Main$update = F2(
@@ -6902,6 +7225,16 @@ var $author$project$Main$update = F2(
 			}());
 	});
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
+var $author$project$Main$divDefautStyle = _List_fromArray(
+	[
+		A2($elm$html$Html$Attributes$style, 'width', '320px'),
+		A2($elm$html$Html$Attributes$style, 'margin', '0 auto'),
+		A2($elm$html$Html$Attributes$style, 'overflow', 'auto'),
+		A2($elm$html$Html$Attributes$style, 'background-color', 'white')
+	]);
+var $author$project$Tools$Game$assetsPath = 'Assets/';
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -6961,27 +7294,28 @@ var $Orasund$pixelengine$PixelEngine$Image$fromSrc = function (source) {
 	};
 };
 var $author$project$Tools$Game$controlsImage = function (keyName) {
+	var path = $author$project$Tools$Game$assetsPath + 'Graphic/ControlButtons/';
 	switch (keyName) {
 		case 'Up':
 			return A2(
 				$Orasund$pixelengine$PixelEngine$Image$clickable,
-				$author$project$Tools$Game$Move($author$project$Tools$Atlas$N),
-				$Orasund$pixelengine$PixelEngine$Image$fromSrc('ControlButtons/Up.png'));
+				$author$project$Tools$Game$inputMsg($Orasund$pixelengine$PixelEngine$InputUp),
+				$Orasund$pixelengine$PixelEngine$Image$fromSrc(path + 'Up.png'));
 		case 'Down':
 			return A2(
 				$Orasund$pixelengine$PixelEngine$Image$clickable,
-				$author$project$Tools$Game$Move($author$project$Tools$Atlas$S),
-				$Orasund$pixelengine$PixelEngine$Image$fromSrc('ControlButtons/Down.png'));
+				$author$project$Tools$Game$inputMsg($Orasund$pixelengine$PixelEngine$InputDown),
+				$Orasund$pixelengine$PixelEngine$Image$fromSrc(path + 'Down.png'));
 		case 'Left':
 			return A2(
 				$Orasund$pixelengine$PixelEngine$Image$clickable,
-				$author$project$Tools$Game$Move($author$project$Tools$Atlas$W),
-				$Orasund$pixelengine$PixelEngine$Image$fromSrc('ControlButtons/Left.png'));
+				$author$project$Tools$Game$inputMsg($Orasund$pixelengine$PixelEngine$InputLeft),
+				$Orasund$pixelengine$PixelEngine$Image$fromSrc(path + 'Left.png'));
 		case 'Right':
 			return A2(
 				$Orasund$pixelengine$PixelEngine$Image$clickable,
-				$author$project$Tools$Game$Move($author$project$Tools$Atlas$E),
-				$Orasund$pixelengine$PixelEngine$Image$fromSrc('ControlButtons/Right.png'));
+				$author$project$Tools$Game$inputMsg($Orasund$pixelengine$PixelEngine$InputRight),
+				$Orasund$pixelengine$PixelEngine$Image$fromSrc(path + 'Right.png'));
 		default:
 			return $Orasund$pixelengine$PixelEngine$Image$fromSrc('no.png');
 	}
@@ -7150,7 +7484,6 @@ var $Orasund$pixelengine$PixelEngine$tiledArea = F2(
 	});
 var $author$project$Tools$Game$width = $author$project$Tools$Game$boardSize * $author$project$Tools$Game$tileSize;
 var $author$project$Tools$Game$areas = function (_v0) {
-	var map = _v0.map;
 	var groundPattern = _v0.groundPattern;
 	var visionData = _v0.visionData;
 	var vision = $elm$core$Dict$toList(visionData.visionMemory);
@@ -7177,15 +7510,16 @@ var $author$project$Tools$Game$areas = function (_v0) {
 	};
 	var visionRes = $elm$core$List$concat(
 		A2($elm$core$List$map, showOnePosition, vision));
+	var imagePath = $author$project$Tools$Game$assetsPath + 'Graphic/';
 	return _List_fromArray(
 		[
 			A2(
 			$Orasund$pixelengine$PixelEngine$tiledArea,
 			{
 				background: $Orasund$pixelengine$PixelEngine$imageBackground(
-					{height: $author$project$Tools$Game$width, source: 'background.png', width: $author$project$Tools$Game$width}),
+					{height: $author$project$Tools$Game$width, source: imagePath + 'background.png', width: $author$project$Tools$Game$width}),
 				rows: $author$project$Tools$Game$boardSize,
-				tileset: {source: 'tileset.png', spriteHeight: $author$project$Tools$Game$tileSize, spriteWidth: $author$project$Tools$Game$tileSize}
+				tileset: {source: imagePath + 'tileset.png', spriteHeight: $author$project$Tools$Game$tileSize, spriteWidth: $author$project$Tools$Game$tileSize}
 			},
 			$elm$core$List$concat(
 				_List_fromArray(
@@ -7206,6 +7540,30 @@ var $author$project$Tools$Game$areas = function (_v0) {
 		]);
 };
 var $elm$html$Html$button = _VirtualDom_node('button');
+var $author$project$Tools$Game$divDefautStyle = _List_fromArray(
+	[
+		A2($elm$html$Html$Attributes$style, 'width', '320px'),
+		A2($elm$html$Html$Attributes$style, 'margin', '0 auto'),
+		A2($elm$html$Html$Attributes$style, 'overflow', 'auto'),
+		A2($elm$html$Html$Attributes$style, 'background-color', 'white')
+	]);
+var $elm$html$Html$br = _VirtualDom_node('br');
+var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $author$project$Tools$Game$information = function (_v0) {
+	var introduction = _v0.introduction;
+	var isWin = _v0.isWin;
+	return _Utils_ap(
+		isWin ? _List_fromArray(
+			[
+				$elm$html$Html$text('Congratulations, you won!'),
+				A2($elm$html$Html$br, _List_Nil, _List_Nil)
+			]) : _List_Nil,
+		_List_fromArray(
+			[
+				$elm$html$Html$text(introduction)
+			]));
+};
 var $Orasund$pixelengine$PixelEngine$Graphics$Data$Options$Options = function (a) {
 	return {$: 'Options', a: a};
 };
@@ -7240,10 +7598,15 @@ var $Orasund$pixelengine$PixelEngine$Graphics$Data$Options$withMovementSpeed = F
 	});
 var $Orasund$pixelengine$PixelEngine$Options$withMovementSpeed = $Orasund$pixelengine$PixelEngine$Graphics$Data$Options$withMovementSpeed;
 var $author$project$Tools$Game$options = A2($Orasund$pixelengine$PixelEngine$Options$withMovementSpeed, 0.4, $Orasund$pixelengine$PixelEngine$Options$default);
-var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
-var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $elm$html$Html$p = _VirtualDom_node('p');
+var $author$project$Tools$Game$textDivDefautStyle = _List_fromArray(
+	[
+		A2($elm$html$Html$Attributes$style, 'width', '500px'),
+		A2($elm$html$Html$Attributes$style, 'height', '110px'),
+		A2($elm$html$Html$Attributes$style, 'margin', '0 auto'),
+		A2($elm$html$Html$Attributes$style, 'overflow', 'auto'),
+		A2($elm$html$Html$Attributes$style, 'background-color', 'white')
+	]);
 var $rtfeldman$elm_css$Css$Structure$Compatible = {$: 'Compatible'};
 var $rtfeldman$elm_css$Css$absolute = {position: $rtfeldman$elm_css$Css$Structure$Compatible, value: 'absolute'};
 var $elm$virtual_dom$VirtualDom$attribute = F2(
@@ -10732,11 +11095,7 @@ var $author$project$Tools$Game$gameView = function (level) {
 			[
 				A2(
 				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$style, 'width', '320px'),
-						A2($elm$html$Html$Attributes$style, 'margin', '0 auto')
-					]),
+				$author$project$Tools$Game$divDefautStyle,
 				_List_fromArray(
 					[
 						A2(
@@ -10748,13 +11107,54 @@ var $author$project$Tools$Game$gameView = function (level) {
 						_List_fromArray(
 							[
 								$elm$html$Html$text('Back to Menu')
+							])),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Events$onClick($author$project$Tools$Game$Undo)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Undo')
+							])),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Events$onClick($author$project$Tools$Game$Reset)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Reset')
 							]))
 					])),
-				A2($Orasund$pixelengine$PixelEngine$toHtml, cfg, playGroud)
+				A2($Orasund$pixelengine$PixelEngine$toHtml, cfg, playGroud),
+				A2(
+				$elm$html$Html$div,
+				$author$project$Tools$Game$textDivDefautStyle,
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$p,
+						_List_Nil,
+						$author$project$Tools$Game$information(level))
+					]))
 			]));
 };
 var $elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
 var $elm$html$Html$map = $elm$virtual_dom$VirtualDom$map;
+var $author$project$Tools$GameObject$addObjInGrp = F2(
+	function (id, obj) {
+		return _Utils_update(
+			obj,
+			{
+				properties: A2(
+					$elm$core$List$cons,
+					$author$project$Tools$GameObject$ConnectGroup(id),
+					obj.properties)
+			});
+	});
 var $author$project$Tools$GameObject$crate = {
 	name: 'Crate',
 	properties: _List_fromArray(
@@ -10776,35 +11176,67 @@ var $author$project$Tools$GameObject$objDict = function () {
 			_List_fromArray(
 				[$author$project$Tools$GameObject$player, $author$project$Tools$GameObject$crate])));
 }();
-var $author$project$Tools$Game$invokObject = F3(
-	function (name, id, gP) {
+var $author$project$Tools$Game$invokObject = F4(
+	function (name, id, gP, mgrpId) {
 		var mObj = A2($elm$core$Dict$get, name, $author$project$Tools$GameObject$objDict);
 		if (mObj.$ === 'Just') {
 			var obj = mObj.a;
-			return _List_fromArray(
-				[
-					_Utils_Tuple2(
-					_Utils_Tuple2(name, id),
-					_Utils_Tuple2(obj, gP))
-				]);
+			if (mgrpId.$ === 'Nothing') {
+				return _List_fromArray(
+					[
+						_Utils_Tuple2(
+						_Utils_Tuple2(name, id),
+						_Utils_Tuple2(obj, gP))
+					]);
+			} else {
+				var grpId = mgrpId.a;
+				return _List_fromArray(
+					[
+						_Utils_Tuple2(
+						_Utils_Tuple2(name, id),
+						_Utils_Tuple2(
+							A2($author$project$Tools$GameObject$addObjInGrp, grpId, obj),
+							gP))
+					]);
+			}
 		} else {
 			return _List_Nil;
 		}
 	});
-var $author$project$Tools$Game$invokObjectsByList = function (list0) {
-	return $elm$core$Dict$fromList(
-		$elm$core$List$concat(
+var $author$project$Tools$Game$invokObjectsByList = F2(
+	function (listNoGrp, listWithGrp) {
+		var resWithGrp = $elm$core$List$concat(
+			A2(
+				$elm$core$List$map,
+				function (_v1) {
+					var _v2 = _v1.a;
+					var name = _v2.a;
+					var id = _v2.b;
+					var gP = _v1.b;
+					var grpId = _v1.c;
+					return A4(
+						$author$project$Tools$Game$invokObject,
+						name,
+						id,
+						gP,
+						$elm$core$Maybe$Just(grpId));
+				},
+				listWithGrp));
+		var resNoGrp = $elm$core$List$concat(
 			A2(
 				$elm$core$List$map,
 				function (_v0) {
 					var name = _v0.a;
 					var id = _v0.b;
 					var gP = _v0.c;
-					return A3($author$project$Tools$Game$invokObject, name, id, gP);
+					return A4($author$project$Tools$Game$invokObject, name, id, gP, $elm$core$Maybe$Nothing);
 				},
-				list0)));
-};
-var $author$project$Tools$Game$defaultLayout1 = $author$project$Tools$Game$invokObjectsByList(
+				listNoGrp));
+		return $elm$core$Dict$fromList(
+			_Utils_ap(resNoGrp, resWithGrp));
+	});
+var $author$project$Tools$Game$defaultLayout1 = A2(
+	$author$project$Tools$Game$invokObjectsByList,
 	_List_fromArray(
 		[
 			_Utils_Tuple3(
@@ -10816,18 +11248,28 @@ var $author$project$Tools$Game$defaultLayout1 = $author$project$Tools$Game$invok
 				_Utils_Tuple2(4, 4))),
 			_Utils_Tuple3(
 			'Crate',
-			0,
-			A2(
-				$author$project$Tools$Atlas$GlobalPos,
-				0,
-				_Utils_Tuple2(5, 4))),
-			_Utils_Tuple3(
-			'Crate',
-			1,
+			2,
 			A2(
 				$author$project$Tools$Atlas$GlobalPos,
 				0,
 				_Utils_Tuple2(6, 4)))
+		]),
+	_List_fromArray(
+		[
+			_Utils_Tuple3(
+			_Utils_Tuple2('Crate', 0),
+			A2(
+				$author$project$Tools$Atlas$GlobalPos,
+				0,
+				_Utils_Tuple2(5, 4)),
+			0),
+			_Utils_Tuple3(
+			_Utils_Tuple2('Crate', 1),
+			A2(
+				$author$project$Tools$Atlas$GlobalPos,
+				1,
+				_Utils_Tuple2(5, 4)),
+			0)
 		]));
 var $author$project$Tools$Atlas$emptyMap = {charts: $elm$core$Dict$empty, links: _List_Nil, name: 'nothing here'};
 var $author$project$Tools$Atlas$Chart = F3(
@@ -11118,8 +11560,12 @@ var $author$project$Tools$Game$levelGenerator = function (_v0) {
 	var groundPattern = _v0.groundPattern;
 	var name = _v0.name;
 	var objectsLayout = _v0.objectsLayout;
+	var introduction = _v0.introduction;
 	return {
+		gameRecords: _List_Nil,
 		groundPattern: groundPattern,
+		introduction: introduction,
+		isWin: false,
 		map: map,
 		name: name,
 		objectsLayout: objectsLayout,
@@ -11139,6 +11585,7 @@ var $author$project$Tools$Game$myLevels = A2(
 			groundPattern: function (gP) {
 				return gP.chartId;
 			},
+			introduction: ' This is a level',
 			map: $author$project$Tools$Game$getMapByName('SquareRoot'),
 			name: 'Square Root',
 			objectsLayout: $author$project$Tools$Game$defaultLayout1
@@ -11147,6 +11594,7 @@ var $author$project$Tools$Game$myLevels = A2(
 			groundPattern: function (gP) {
 				return gP.chartId;
 			},
+			introduction: ' This is a level',
 			map: $author$project$Tools$Game$getMapByName('EllipticCurve'),
 			name: 'Elliptic Curve',
 			objectsLayout: $author$project$Tools$Game$defaultLayout1
@@ -11155,6 +11603,7 @@ var $author$project$Tools$Game$myLevels = A2(
 			groundPattern: function (gP) {
 				return gP.chartId;
 			},
+			introduction: ' This is a level',
 			map: $author$project$Tools$Game$getMapByName('SquareSquareRoot'),
 			name: '(y^2+1)^2=x',
 			objectsLayout: $author$project$Tools$Game$defaultLayout1
@@ -11196,11 +11645,7 @@ var $author$project$Main$view = function (model) {
 	} else {
 		return A2(
 			$elm$html$Html$div,
-			_List_fromArray(
-				[
-					A2($elm$html$Html$Attributes$style, 'width', '320px'),
-					A2($elm$html$Html$Attributes$style, 'margin', '0 auto')
-				]),
+			$author$project$Main$divDefautStyle,
 			_List_fromArray(
 				[
 					A2(
