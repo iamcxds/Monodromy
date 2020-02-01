@@ -462,8 +462,10 @@ information { introduction, isWin } =
      else
         []
     )
-        ++ [ Html.text introduction  ]
-
+        ++ [ Html.text introduction ,Html.br [] [], Html.text generalGuide]
+generalGuide : String
+generalGuide =
+    "Use the arrow Keys or WASD to move, Z to undo and R to reset"
 
 divDefautStyle : List (Html.Attribute Msg)
 divDefautStyle =
