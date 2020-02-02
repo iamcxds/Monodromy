@@ -2,26 +2,31 @@
 <html> 
     <head>
         <meta charset="UTF-8">
-        <title>Home Page</title>
+        <title>Monodromy</title>
         <style>     
             .mid{
                 width: 680px ;
                 margin: 0 auto
             }
             
+            
         </style>
+        <script src="Game/js_build/main.js"></script>
     </head>
     
-        <div> 
-        <div id="game" class="mid" >
-            <iframe src="Game/js build/index.html"
-                    height="480"
-                    width="680"
-                    frameborder="0"
-                    scrolling="0"
-                    margin="auto"
-                    display="block"
-            ></iframe>
+        <div class="mid"> 
+            <div id="elm"></div>
+            <script>
+              window.addEventListener("keydown", function(e) {
+               if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+               e.preventDefault();
+               }
+              }, false);
+            
+            var app = Elm.Main.init({
+              node: document.getElementById('elm')
+            });
+            </script>
         </div>
         <div id="readme" style="text-align: center">
             <a href="https://github.com/iamcxds/Monodromy" target="_blank">Click here to view the source code</a>

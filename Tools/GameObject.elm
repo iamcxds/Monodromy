@@ -1,6 +1,7 @@
 module Tools.GameObject exposing (Object, ObjectsLayout, addObjInGrp, getObjByGP, objDict, onePlayerTryMove)
 
 --import Debug exposing (log)
+
 import Dict exposing (Dict)
 import Set exposing (Set)
 import Tools.Atlas as At exposing (pX, pY)
@@ -53,17 +54,20 @@ generatePropSets layout =
         |> Dict.fromList
 
 
-generatePlayer : ObjectsLayout -> List IntegratedObject
-generatePlayer layout =
-    let
-        objIsYou =
-            getObjByProp You layout
-                |> Dict.toList
 
-        singlePlayer ( names, ( _, gP ) ) =
-            Dict.singleton names gP
-    in
-    List.map singlePlayer objIsYou
+{-
+   generatePlayer : ObjectsLayout -> List IntegratedObject
+   generatePlayer layout =
+       let
+           objIsYou =
+               getObjByProp You layout
+                   |> Dict.toList
+
+           singlePlayer ( names, ( _, gP ) ) =
+               Dict.singleton names gP
+       in
+       List.map singlePlayer objIsYou
+-}
 
 
 maximalConnectGrp : Int
@@ -92,19 +96,22 @@ getObjByGP gP layout =
         |> Dict.keys
 
 
-orBoolList : List ( Bool, a ) -> ( Bool, List a )
-orBoolList list =
-    let
-        boolList =
-            List.map pX list
 
-        result =
-            List.map pY list
+{-
+   orBoolList : List ( Bool, a ) -> ( Bool, List a )
+   orBoolList list =
+       let
+           boolList =
+               List.map pX list
 
-        boolRes =
-            List.foldl (||) False boolList
-    in
-    ( boolRes, result )
+           result =
+               List.map pY list
+
+           boolRes =
+               List.foldl (||) False boolList
+       in
+       ( boolRes, result )
+-}
 
 
 orBoolListFoldl : (a -> b -> ( Bool, b )) -> b -> List a -> ( Bool, b )
@@ -118,88 +125,90 @@ orBoolListFoldl fun y xs =
 
 
 
-{- andBoolList : List (Bool,a) -> (Bool,List a)
-   andBoolList list =
-       let
-           boolList = List.map pX list
-           result = List.map pY list
+{-
+   andBoolList : List (Bool,a) -> (Bool,List a)
+      andBoolList list =
+          let
+              boolList = List.map pX list
+              result = List.map pY list
 
-           boolRes = List.foldl (&&) True boolList
-       in
-           (boolRes,result)
+              boolRes = List.foldl (&&) True boolList
+          in
+              (boolRes,result)
 -}
-{- onePlaceTryMove : Set ( String, Int ) -> At.GlobalPos -> At.Atlas -> At.Direction -> ObjectsLayout -> Dict Int (Set ( String, Int )) -> ( Bool, ObjectsLayout )
+{-
+   onePlaceTryMove : Set ( String, Int ) -> At.GlobalPos -> At.Atlas -> At.Direction -> ObjectsLayout -> Dict Int (Set ( String, Int )) -> ( Bool, ObjectsLayout )
    onePlaceTryMove names gP atl dir layout propSets =
-       let
-           defaultEmpty =
-               Maybe.withDefault Set.empty
+          let
+              defaultEmpty =
+                  Maybe.withDefault Set.empty
 
-           defaultCase =
-               ( False, layout )
+              defaultCase =
+                  ( False, layout )
 
-           getPropSet ind =
-               Dict.get ind propSets
-                   |> defaultEmpty
+              getPropSet ind =
+                  Dict.get ind propSets
+                      |> defaultEmpty
 
-           --filterPlayer = Set.intersect (getPropSet 0)
-           filterStop =
-               Set.intersect (getPropSet 1)
+              --filterPlayer = Set.intersect (getPropSet 0)
+              filterStop =
+                  Set.intersect (getPropSet 1)
 
-           filterPush =
-               Set.intersect (getPropSet 2)
+              filterPush =
+                  Set.intersect (getPropSet 2)
 
-           objsOn gP0 =
-               getObjByGP gP0 layout
-       in
-       case At.tryMoveSimple atl gP dir of
-           ( True, tGP ) ->
-               let
-                   --when success update the layout
-                   updateGP ( name, id ) layout0 =
-                       Dict.update ( name, id ) (Maybe.map (\( obj, _ ) -> ( obj, tGP ))) layout0
+              objsOn gP0 =
+                  getObjByGP gP0 layout
+          in
+          case At.tryMoveSimple atl gP dir of
+              ( True, tGP ) ->
+                  let
+                      --when success update the layout
+                      updateGP ( name, id ) layout0 =
+                          Dict.update ( name, id ) (Maybe.map (\( obj, _ ) -> ( obj, tGP ))) layout0
 
-                   successCase =
-                       ( True, Set.foldl updateGP layout names )
+                      successCase =
+                          ( True, Set.foldl updateGP layout names )
 
-                   objOnTGP =
-                       Set.fromList (objsOn tGP)
+                      objOnTGP =
+                          Set.fromList (objsOn tGP)
 
-                   stopOnTGP =
-                       filterStop objOnTGP
+                      stopOnTGP =
+                          filterStop objOnTGP
 
-                   pushOnTGP =
-                       filterPush objOnTGP
-               in
-               {- try move, if target place has stop object then stop.
-                  f has push object then try to move push object
-               -}
-               if Set.isEmpty stopOnTGP then
-                   if Set.isEmpty pushOnTGP then
-                       successCase
+                      pushOnTGP =
+                          filterPush objOnTGP
+                  in
+                  {- try move, if target place has stop object then stop.
+                     f has push object then try to move push object
+                  -}
+                  if Set.isEmpty stopOnTGP then
+                      if Set.isEmpty pushOnTGP then
+                          successCase
 
-                   else
-                       let
-                           pushPlayer =
-                               filterPush names
+                      else
+                          let
+                              pushPlayer =
+                                  filterPush names
 
-                           pushPlayersAndPushObj =
-                               Set.union pushPlayer pushOnTGP
+                              pushPlayersAndPushObj =
+                                  Set.union pushPlayer pushOnTGP
 
-                           propsAfterTryPush =
-                               --update stop objects, add current player and push objects
-                               Dict.update 1 (\stop -> Just (Set.union pushPlayersAndPushObj (defaultEmpty stop))) propSets
+                              propsAfterTryPush =
+                                  --update stop objects, add current player and push objects
+                                  Dict.update 1 (\stop -> Just (Set.union pushPlayersAndPushObj (defaultEmpty stop))) propSets
 
-                           layoutAfterTryPush =
-                               onePlaceTryMove pushOnTGP tGP atl dir layout propsAfterTryPush
-                                   |> pY
-                       in
-                       onePlaceTryMove names gP atl dir layoutAfterTryPush propsAfterTryPush
+                              layoutAfterTryPush =
+                                  onePlaceTryMove pushOnTGP tGP atl dir layout propsAfterTryPush
+                                      |> pY
+                          in
+                          onePlaceTryMove names gP atl dir layoutAfterTryPush propsAfterTryPush
 
-               else
-                   defaultCase
+                  else
+                      defaultCase
 
-           _ ->
-               defaultCase
+              _ ->
+                  defaultCase
 
 -}
 
@@ -320,35 +329,38 @@ integratedMoveAndUpdate atl bigObj dir layout propSets =
         ( False, ( False, bigObj ) )
 
 
-listIntegratedMoveAndUpdate : At.Atlas -> List IntegratedObject -> At.Direction -> ObjectsLayout -> Dict Int (Set ( String, Int )) -> ( Bool, List ( Bool, IntegratedObject ) )
-listIntegratedMoveAndUpdate atl bigObjs dir layout propSets =
-    let
-        moveAndUpdateForOneObj obj =
-            integratedMoveAndUpdate atl obj dir layout propSets
 
-        moveAndUpdateList =
-            List.map moveAndUpdateForOneObj bigObjs
+{-
+   listIntegratedMoveAndUpdate : At.Atlas -> List IntegratedObject -> At.Direction -> ObjectsLayout -> Dict Int (Set ( String, Int )) -> ( Bool, List ( Bool, IntegratedObject ) )
+   listIntegratedMoveAndUpdate atl bigObjs dir layout propSets =
+       let
+           moveAndUpdateForOneObj obj =
+               integratedMoveAndUpdate atl obj dir layout propSets
 
-        ( isUpdateForAll, movedObjsList ) =
-            orBoolList moveAndUpdateList
-    in
-    if isUpdateForAll then
-        let
-            --this new function with stop any of BigObjects moving.
-            newMoveResult obj =
-                if pX (moveAndUpdateForOneObj obj) then
-                    pY (moveAndUpdateForOneObj obj)
+           moveAndUpdateList =
+               List.map moveAndUpdateForOneObj bigObjs
 
-                else
-                    ( False, obj )
+           ( isUpdateForAll, movedObjsList ) =
+               orBoolList moveAndUpdateList
+       in
+       if isUpdateForAll then
+           let
+               --this new function with stop any of BigObjects moving.
+               newMoveResult obj =
+                   if pX (moveAndUpdateForOneObj obj) then
+                       pY (moveAndUpdateForOneObj obj)
 
-            newMoveList =
-                List.map newMoveResult bigObjs
-        in
-        ( True, newMoveList )
+                   else
+                       ( False, obj )
 
-    else
-        ( False, movedObjsList )
+               newMoveList =
+                   List.map newMoveResult bigObjs
+           in
+           ( True, newMoveList )
+
+       else
+           ( False, movedObjsList )
+-}
 
 
 updateLayoutByIntegrated : ( Bool, IntegratedObject ) -> ObjectsLayout -> ( Bool, ObjectsLayout )
@@ -370,50 +382,50 @@ updateLayoutByIntegrated ( isMoved, bigObject ) layout =
         ( False, layout )
 
 
-mergeIntergratedObjects : List IntegratedObject -> ( Bool, List IntegratedObject )
-mergeIntergratedObjects bigObjList =
-    case bigObjList of
-        [] ->
-            ( False, [] )
 
-        x :: xs ->
-            let
-                ( isMerged, newxs ) =
-                    mergeIntergratedObjects xs
+{-
+   mergeIntergratedObjects : List IntegratedObject -> ( Bool, List IntegratedObject )
+   mergeIntergratedObjects bigObjList =
+       case bigObjList of
+           [] ->
+               ( False, [] )
 
-                oneObjTryMerge : IntegratedObject -> List IntegratedObject -> ( Bool, List IntegratedObject )
-                oneObjTryMerge obj list =
-                    case list of
-                        [] ->
-                            ( False, [ obj ] )
+           x :: xs ->
+               let
+                   ( isMerged, newxs ) =
+                       mergeIntergratedObjects xs
 
-                        y :: ys ->
-                            if Dict.isEmpty (Dict.intersect obj y) then
-                                let
-                                    ( isMerged1, newys ) =
-                                        oneObjTryMerge obj ys
-                                in
-                                ( isMerged1, y :: newys )
+                   oneObjTryMerge : IntegratedObject -> List IntegratedObject -> ( Bool, List IntegratedObject )
+                   oneObjTryMerge obj list =
+                       case list of
+                           [] ->
+                               ( False, [ obj ] )
 
-                            else
-                                let
-                                    newObj =
-                                        Dict.union obj y
-                                in
-                                ( True, pY (oneObjTryMerge newObj ys) )
+                           y :: ys ->
+                               if Dict.isEmpty (Dict.intersect obj y) then
+                                   let
+                                       ( isMerged1, newys ) =
+                                           oneObjTryMerge obj ys
+                                   in
+                                   ( isMerged1, y :: newys )
 
-                ( isMerged2, newList ) =
-                    oneObjTryMerge x newxs
-            in
-            ( isMerged || isMerged2, newList )
+                               else
+                                   let
+                                       newObj =
+                                           Dict.union obj y
+                                   in
+                                   ( True, pY (oneObjTryMerge newObj ys) )
 
-
-
+                   ( isMerged2, newList ) =
+                       oneObjTryMerge x newxs
+               in
+               ( isMerged || isMerged2, newList )
+-}
 {- check and merge big objects and existed objects on map -}
 
 
-tryMergeWithExistedIntegrated : List IntegratedObject -> List IntegratedObject -> ( Bool, List IntegratedObject )
-tryMergeWithExistedIntegrated bigObjs objsOnMap =
+tryMergeOneWithExistedIntegrated : List IntegratedObject -> IntegratedObject -> ( Bool, IntegratedObject )
+tryMergeOneWithExistedIntegrated objsOnMap bigObj =
     let
         twoObjsMerge mObj obj =
             if Dict.isEmpty (Dict.intersect obj mObj) || Dict.isEmpty (Dict.diff mObj obj) then
@@ -421,51 +433,64 @@ tryMergeWithExistedIntegrated bigObjs objsOnMap =
 
             else
                 ( True, Dict.union obj mObj )
-
-        oneObjMerge obj =
-            orBoolListFoldl twoObjsMerge obj objsOnMap
     in
-    List.map oneObjMerge bigObjs
-        |> orBoolList
+    orBoolListFoldl twoObjsMerge bigObj objsOnMap
 
 
 
-{- moveLikeOneIntegrated : At.Atlas -> IntegratedObject -> At.Direction -> ObjectsLayout -> Dict Int (Set ( String, Int )) -> ( Bool, ObjectsLayout )
-   moveLikeOneIntegrated atl bigObj dir layout propSets =
-       let
-           ( isUpdated, ( isMoved, newObj ) ) =
-               integratedMoveAndUpdate atl bigObj dir layout propSets
-       in
-       if isUpdated then
-           moveLikeOneIntegrated atl newObj dir layout propSets
-
-       else
-           updateLayoutByIntegrated ( isMoved, newObj ) ( False, layout )
+{-
+   tryMergeWithExistedIntegrated : List IntegratedObject -> List IntegratedObject -> ( Bool, List IntegratedObject )
+   tryMergeWithExistedIntegrated objsOnMap bigObjs  =
+       List.map (tryMergeOneWithExistedIntegrated objsOnMap) bigObjs
+           |> orBoolList
 -}
 
 
-moveLikeIntegrated : At.Atlas -> List IntegratedObject -> At.Direction -> ObjectsLayout -> List IntegratedObject -> Dict Int (Set ( String, Int )) -> ( Bool, ObjectsLayout )
-moveLikeIntegrated atl bigObjs dir layout exObjs propSets =
+moveLikeOneIntegrated : At.Atlas -> IntegratedObject -> At.Direction -> ObjectsLayout -> List IntegratedObject -> Dict Int (Set ( String, Int )) -> ( Bool, ObjectsLayout )
+moveLikeOneIntegrated atl bigObj dir layout exObjs propSets =
     let
-        ( needMerge0, newList0 ) =
-            {- log "merge1" -} mergeIntergratedObjects bigObjs
+        ( needMerge, newObj0 ) =
+            {- log "merge2" -}
+            tryMergeOneWithExistedIntegrated exObjs bigObj
 
-        ( needMerge1, newList ) =
-            {- log "merge2" -} tryMergeWithExistedIntegrated newList0 exObjs
+        ( isUpdated, ( isMoved, newObj ) ) =
+            integratedMoveAndUpdate atl bigObj dir layout propSets
     in
-    if needMerge0 || needMerge1 then
-        moveLikeIntegrated atl newList dir layout exObjs propSets
+    if needMerge then
+        moveLikeOneIntegrated atl newObj0 dir layout exObjs propSets
+
+    else if isUpdated then
+        moveLikeOneIntegrated atl newObj dir layout exObjs propSets
 
     else
-        let
-            ( isUpdated, newObjsAndIsMoved ) =
-                listIntegratedMoveAndUpdate atl bigObjs dir layout propSets
-        in
-        if isUpdated then
-            moveLikeIntegrated atl (List.map pY newObjsAndIsMoved) dir layout exObjs propSets
+        updateLayoutByIntegrated ( isMoved, newObj ) layout
 
-        else
-            orBoolListFoldl updateLayoutByIntegrated layout newObjsAndIsMoved
+
+
+{-
+   moveLikeIntegrated : At.Atlas -> List IntegratedObject -> At.Direction -> ObjectsLayout -> List IntegratedObject -> Dict Int (Set ( String, Int )) -> ( Bool, ObjectsLayout )
+   moveLikeIntegrated atl bigObjs dir layout exObjs propSets =
+       let
+           ( needMerge0, newList0 ) =
+               {- log "merge1" -} mergeIntergratedObjects bigObjs
+
+           ( needMerge1, newList ) =
+               {- log "merge2" -} tryMergeWithExistedIntegrated exObjs newList0
+       in
+       if needMerge0 || needMerge1 then
+           moveLikeIntegrated atl newList dir layout exObjs propSets
+
+       else
+           let
+               ( isUpdated, newObjsAndIsMoved ) =
+                   listIntegratedMoveAndUpdate atl bigObjs dir layout propSets
+           in
+           if isUpdated then
+               moveLikeIntegrated atl (List.map pY newObjsAndIsMoved) dir layout exObjs propSets
+
+           else
+               orBoolListFoldl updateLayoutByIntegrated layout newObjsAndIsMoved
+-}
 
 
 onePlayerTryMove : At.Atlas -> At.Direction -> ObjectsLayout -> ( Bool, ObjectsLayout )
@@ -478,17 +503,18 @@ onePlayerTryMove atl dir layout =
             Dict.get ( "Player", 0 ) layout
                 |> Maybe.map pY
 
-        players =
-            generatePlayer layout
-
+        {- players =
+           generatePlayer layout
+        -}
         exObjs =
             generateExObjs layout
     in
     Result.withDefault ( False, layout ) <|
         case mGP of
-            Just _ ->
-                moveLikeIntegrated atl players dir layout exObjs propSets
-                    --onePlaceTryMove (Set.singleton ( "Player", 0 )) gP atl dir layout (generatePropSets layout)
+            Just gP ->
+                --moveLikeIntegrated atl players dir layout exObjs propSets
+                --onePlaceTryMove (Set.singleton ( "Player", 0 )) gP atl dir layout (generatePropSets layout)
+                moveLikeOneIntegrated atl (Dict.singleton ( "Player", 0 ) gP) dir layout exObjs propSets
                     |> Ok
 
             Nothing ->
