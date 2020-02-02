@@ -70,6 +70,8 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
+    div divGameStyle
+    [
     case model of
         Play level ->
             Html.map FromGame (Game.gameView level)
@@ -80,10 +82,21 @@ view model =
                 , ul [ style "list-style-type" "none", style "overflow" "auto" ]
                     (List.map selectLevelButton Game.myLevels)
                 ]
+    ]
 
 divDefautStyle : List (Html.Attribute Msg)
 divDefautStyle =
     [ style "width" "320px"
+    , style "margin" "0 auto"
+    , style "overflow" "auto"
+    , style "background-color" "white"
+    ]
+
+
+divGameStyle : List (Html.Attribute Msg)
+divGameStyle =
+    [ style "width" "680px"
+    , style "height" "480px"
     , style "margin" "0 auto"
     , style "overflow" "auto"
     , style "background-color" "white"
