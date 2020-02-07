@@ -483,24 +483,30 @@ minusOfBlocks base holes =
 --n cover
 
 
-createAtlasNCover : Int -> (Int -> List Position) -> List EdgeLink -> String -> Atlas
-createAtlasNCover n base lks name =
+createAtlasNCover :
+    { coverNumber : Int
+    , bolcksById : Int -> List Position
+    , links : List EdgeLink
+    , name : String
+    }
+    -> Atlas
+createAtlasNCover { coverNumber, bolcksById, links, name } =
     let
         --remove the links not match to chart
         isLinkExist lk =
-            List.member lk.from.pos (base lk.from.chartId) && List.member lk.to.pos (base lk.to.chartId)
+            List.member lk.from.pos (bolcksById lk.from.chartId) && List.member lk.to.pos (bolcksById lk.to.chartId)
 
         newLks =
-            List.filter isLinkExist lks
+            List.filter isLinkExist links
 
         --create gaps by new links
-        createChartByInd ind =
-            ( ind, Chart ind (base ind) (linksToGaps ind newLks) )
+        createChartById ind =
+            ( ind, Chart ind (bolcksById ind) (linksToGaps ind newLks) )
     in
     -- the -1 level as obstacle
     { charts =
         Dict.fromList <|
-            List.map createChartByInd (List.range 0 (n - 1))
+            List.map createChartById (List.range 0 (coverNumber - 1))
     , links = newLks
     , name = name
     }
@@ -514,74 +520,80 @@ emptyMap =
     }
 
 
-testMap1 : Atlas
-testMap1 =
-    let
-        holes =
-            [ ( 5, 5 ) ]
 
-        base =
-            always <|
-                minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+{- testMap1 : Atlas
+   testMap1 =
+       let
+           holes =
+               [ ( 5, 5 ) ]
 
-        lks =
-            List.concat <|
-                [ createLongStraightLinks1 0 ( 0, 5 ) ( 4, 5 ) S 1
-                , createLongStraightLinks1 1 ( 0, 5 ) ( 4, 5 ) S 0
-                ]
-    in
-    createAtlasNCover 2 base lks "SquareRoot"
+           base =
+               always <|
+                   minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) [ ( 5, 5 ) ]
 
-
-testMap2 : Atlas
-testMap2 =
-    let
-        holes =
-            [ ( 1, 1 ), ( 8, 5 ), ( 3, 5 ) ]
-
-        base =
-            always <|
-                minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
-
-        lks =
-            List.concat <|
-                [ defaultLink1 0 ( 0, 1 ) N 1
-                , defaultLink1 1 ( 0, 1 ) N 0
-                , createLongStraightLinks1 0 ( 4, 5 ) ( 7, 5 ) S 1
-                , createLongStraightLinks1 1 ( 4, 5 ) ( 7, 5 ) S 0
-                ]
-    in
-    createAtlasNCover 2 base lks "EllipticCurve"
+           lks =
+               List.concat <|
+                   [ createLongStraightLinks1 0 ( 0, 5 ) ( 4, 5 ) S 1
+                   , createLongStraightLinks1 1 ( 0, 5 ) ( 4, 5 ) S 0
+                   ]
+       in
+       createAtlasNCover 2 base lks "SquareRoot"
 
 
-testMap3 : Atlas
-testMap3 =
-    let
-        holes =
-            [ ( 3, 5 ), ( 7, 5 ) ]
+   testMap2 : Atlas
+   testMap2 =
+       let
+           holes =
+               [ ( 1, 1 ), ( 8, 5 ), ( 3, 5 ) ]
 
-        base i =
-            case i of
-                0 ->
-                    minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+           base =
+               always <|
+                   minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) [ ( 1, 1 ), ( 8, 5 ), ( 3, 5 ) ]
 
-                2 ->
-                    minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+           lks =
+               List.concat <|
+                   [ defaultLink1 0 ( 0, 1 ) N 1
+                   , defaultLink1 1 ( 0, 1 ) N 0
+                   , createLongStraightLinks1 0 ( 4, 5 ) ( 7, 5 ) S 1
+                   , createLongStraightLinks1 1 ( 4, 5 ) ( 7, 5 ) S 0
+                   ]
+       in
+       createAtlasNCover 2 base lks "EllipticCurve"
 
-                _ ->
-                    minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) [ ( 3, 5 ) ]
 
-        lks =
-            List.concat <|
-                [ createLongStraightLinks1 0 ( 8, 5 ) ( 9, 5 ) S 2
-                , createLongStraightLinks1 2 ( 8, 5 ) ( 9, 5 ) S 0
-                , createLongStraightLinks1 0 ( 0, 5 ) ( 2, 5 ) S 1
-                , createLongStraightLinks1 1 ( 0, 5 ) ( 2, 5 ) S 0
-                , createLongStraightLinks1 2 ( 0, 5 ) ( 2, 5 ) S 3
-                , createLongStraightLinks1 3 ( 0, 5 ) ( 2, 5 ) S 2
-                ]
-    in
-    createAtlasNCover 4 base lks "SquareSquareRoot"
+   testMap3 : Atlas
+   testMap3 =
+       let
+
+
+           base i =
+               let
+                   holes =
+                       [ ( 3, 5 ), ( 7, 5 ) ]
+               in
+
+               case i of
+                   0 ->
+                       minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+
+                   2 ->
+                       minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+
+                   _ ->
+                       minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) [ ( 3, 5 ) ]
+
+           lks =
+               List.concat <|
+                   [ createLongStraightLinks1 0 ( 8, 5 ) ( 9, 5 ) S 2
+                   , createLongStraightLinks1 2 ( 8, 5 ) ( 9, 5 ) S 0
+                   , createLongStraightLinks1 0 ( 0, 5 ) ( 2, 5 ) S 1
+                   , createLongStraightLinks1 1 ( 0, 5 ) ( 2, 5 ) S 0
+                   , createLongStraightLinks1 2 ( 0, 5 ) ( 2, 5 ) S 3
+                   , createLongStraightLinks1 3 ( 0, 5 ) ( 2, 5 ) S 2
+                   ]
+       in
+       createAtlasNCover 4 base lks "SquareSquareRoot"
+-}
 
 
 mapDict : Dict String Atlas
@@ -592,7 +604,89 @@ mapDict =
     in
     Dict.fromList <|
         List.map f <|
-            [ testMap1
-            , testMap2
-            , testMap3
-            ]
+            List.map createAtlasNCover <|
+                [ { coverNumber = 2
+                  , bolcksById =
+                        always <|
+                            minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) [ ( 5, 5 ) ]
+                  , links =
+                        List.concat <|
+                            [ createLongStraightLinks1 0 ( 0, 5 ) ( 4, 5 ) S 1
+                            , createLongStraightLinks1 1 ( 0, 5 ) ( 4, 5 ) S 0
+                            ]
+                  , name = "SquareRoot"
+                  }
+                , { coverNumber = 2
+                  , bolcksById =
+                        always <|
+                            minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) [ ( 1, 1 ), ( 8, 5 ), ( 3, 5 ) ]
+                  , links =
+                        List.concat <|
+                            [ defaultLink1 0 ( 0, 1 ) N 1
+                            , defaultLink1 1 ( 0, 1 ) N 0
+                            , createLongStraightLinks1 0 ( 4, 5 ) ( 7, 5 ) S 1
+                            , createLongStraightLinks1 1 ( 4, 5 ) ( 7, 5 ) S 0
+                            ]
+                  , name = "EllipticCurve"
+                  }
+                , { coverNumber = 4
+                  , bolcksById =
+                        \i ->
+                            let
+                                holes =
+                                    [ ( 3, 5 ), ( 7, 5 ) ]
+                            in
+                            case i of
+                                0 ->
+                                    minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+
+                                2 ->
+                                    minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) holes
+
+                                _ ->
+                                    minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) [ ( 3, 5 ) ]
+                  , links =
+                        List.concat <|
+                            [ createLongStraightLinks1 0 ( 8, 5 ) ( 9, 5 ) S 2
+                            , createLongStraightLinks1 2 ( 8, 5 ) ( 9, 5 ) S 0
+                            , createLongStraightLinks1 0 ( 0, 5 ) ( 2, 5 ) S 1
+                            , createLongStraightLinks1 1 ( 0, 5 ) ( 2, 5 ) S 0
+                            , createLongStraightLinks1 2 ( 0, 5 ) ( 2, 5 ) S 3
+                            , createLongStraightLinks1 3 ( 0, 5 ) ( 2, 5 ) S 2
+                            ]
+                  , name = "SquareSquareRoot"
+                  }
+                , { coverNumber = 6
+                  , bolcksById =
+                        {-
+                           (23)=F (123) =R
+                           0 e
+                           1 R
+                           2 RR
+                           3 F
+                           4 RF=FRR
+                           5 RRF=FR
+                        -}
+                        always <|
+                            minusOfBlocks (formRectangle ( 0, 0 ) ( 9, 9 )) [ ( 3, 5 ), ( 7, 5 ) ]
+                  , links =
+                        List.concat <|
+                            [ --(23)=F
+                              createLongStraightLinks1 0 ( 8, 5 ) ( 9, 5 ) S 3
+                            , createLongStraightLinks1 3 ( 8, 5 ) ( 9, 5 ) S 0
+                            , createLongStraightLinks1 1 ( 8, 5 ) ( 9, 5 ) S 5
+                            , createLongStraightLinks1 5 ( 8, 5 ) ( 9, 5 ) S 1
+                            , createLongStraightLinks1 2 ( 8, 5 ) ( 9, 5 ) S 4
+                            , createLongStraightLinks1 4 ( 8, 5 ) ( 9, 5 ) S 2
+
+                            -- (123)=R
+                            , createLongStraightLinks1 0 ( 0, 5 ) ( 2, 5 ) N 1
+                            , createLongStraightLinks1 1 ( 0, 5 ) ( 2, 5 ) N 2
+                            , createLongStraightLinks1 2 ( 0, 5 ) ( 2, 5 ) N 0
+                            , createLongStraightLinks1 3 ( 0, 5 ) ( 2, 5 ) N 4
+                            , createLongStraightLinks1 4 ( 0, 5 ) ( 2, 5 ) N 5
+                            , createLongStraightLinks1 5 ( 0, 5 ) ( 2, 5 ) N 3
+                            ]
+                  , name = "S3"
+                  }
+                ]

@@ -71,18 +71,18 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div divGameStyle
-    [
-    case model of
-        Play level ->
-            Html.map FromGame (Game.gameView level)
+        [ case model of
+            Play level ->
+                Html.map FromGame (Game.gameView level)
 
-        Menu ->
-            div divDefautStyle
-                [ span [] [ Html.text "Select the scene" ]
-                , ul [ style "list-style-type" "none", style "overflow" "auto" ]
-                    (List.map selectLevelButton Game.myLevels)
-                ]
-    ]
+            Menu ->
+                div divDefautStyle
+                    (List.concat
+                    [ buttonList "Select the Level" Game.levelList
+                    , buttonList "These are Demos(No goal to win)" Game.myDemos
+                    ])
+        ]
+
 
 divDefautStyle : List (Html.Attribute Msg)
 divDefautStyle =
@@ -101,6 +101,15 @@ divGameStyle =
     , style "overflow" "auto"
     , style "background-color" "white"
     ]
+
+
+buttonList : String -> List Game.GameLevel -> List (Html Msg)
+buttonList listName gameList =
+    [ span [] [ Html.text listName ]
+    , ul [ style "list-style-type" "none", style "overflow" "auto" ]
+        (List.map selectLevelButton gameList)
+    ]
+
 
 selectLevelButton : Game.GameLevel -> Html Msg
 selectLevelButton level =

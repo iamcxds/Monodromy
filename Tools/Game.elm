@@ -1,7 +1,8 @@
-module Tools.Game exposing (GameLevel, Msg(..), gameView, keyboardControls, myLevels, update)
+module Tools.Game exposing (GameLevel, Msg(..), gameView, keyboardControls, levelList, myDemos, update)
 
 --import Json.Decode as D
 
+import Array
 import Dict exposing (Dict)
 import Html exposing (Html, button, div)
 import Html.Attributes exposing (style)
@@ -38,16 +39,17 @@ type alias VisionElements =
 
 
 type alias GameState =
-    { visionData : VisionElements
+    { playerGPos : At.GlobalPos
+    , visionData : VisionElements
     , objectsLayout : Obj.ObjectsLayout
+    , isWin : Bool
     }
 
 
 type alias GameLevel =
-    { map : At.Atlas
-
-    --, gP : At.GlobalPos
-    , name : String
+    { name : String
+    , map : At.Atlas
+    , playerGPos : At.GlobalPos
 
     -- every tile associated to a ground tile index
     , groundPattern : At.GlobalPos -> Int
@@ -55,45 +57,66 @@ type alias GameLevel =
     , objectsLayout : Obj.ObjectsLayout
     , gameRecords : List GameState
     , introduction : String
+    , winCondition : List ( String, Int )
     , isWin : Bool
     }
 
 
-updateVision : At.Atlas -> Obj.ObjectsLayout -> VisionElements -> VisionElements
-updateVision map layout { visionMemory, shadows } =
+winJudge : At.GlobalPos -> List ( String, Int ) -> Obj.ObjectsLayout -> Bool
+winJudge gP winCon layout =
     let
-        mGP =
-            Dict.get ( "Player", 0 ) layout
-                |> Maybe.map pY
+        winObj =
+            Dict.filter (\a _ -> List.member a winCon) layout
+
+        winGPos =
+            Dict.values winObj
+                |> List.map pY
     in
-    case mGP of
-        Just gP ->
-            let
-                currentVision : Dict Position ThingsOnOnePosition
-                currentVision =
-                    At.defaultVisableArea map gP
-                        |> Dict.filter (\pos -> always (List.member pos allBaseBlocks))
-                        |> Dict.map (\pos id -> ( id, Obj.getObjByGP (At.GlobalPos id pos) layout ))
+    List.member gP winGPos
 
-                visionRange =
-                    Dict.keys currentVision
 
-                onePosUpdate : Position -> Dict Position ThingsOnOnePosition -> Dict Position ThingsOnOnePosition
-                onePosUpdate pos dict =
-                    Dict.update pos (always (Dict.get pos currentVision)) dict
+updateVision : At.Atlas -> At.GlobalPos -> Obj.ObjectsLayout -> VisionElements -> VisionElements
+updateVision map gP layout { visionMemory } =
+    let
+        currentVision : Dict Position ThingsOnOnePosition
+        currentVision =
+            At.defaultVisableArea map gP
+                |> Dict.filter (\pos -> always (List.member pos allBaseBlocks))
+                |> Dict.map (\pos id -> ( id, Obj.getObjByGP (At.GlobalPos id pos) layout ))
 
-                newMemory : Dict Position ThingsOnOnePosition
-                newMemory =
-                    List.foldl onePosUpdate visionMemory visionRange
+        visionRange =
+            Dict.keys currentVision
 
-                newShadows =
-                    At.minusOfBlocks allBaseBlocks visionRange
-                        |> List.filter (\pos -> List.member pos (Dict.keys newMemory))
-            in
-            VisionElements newMemory newShadows
+        onePosUpdate : Position -> Dict Position ThingsOnOnePosition -> Dict Position ThingsOnOnePosition
+        onePosUpdate pos dict =
+            Dict.update pos (always (Dict.get pos currentVision)) dict
 
-        _ ->
-            VisionElements visionMemory shadows
+        newMemory : Dict Position ThingsOnOnePosition
+        newMemory =
+            List.foldl onePosUpdate visionMemory visionRange
+
+        newShadows =
+            At.minusOfBlocks allBaseBlocks visionRange
+                |> List.filter (\pos -> List.member pos (Dict.keys newMemory))
+    in
+    VisionElements newMemory newShadows
+
+
+updatePlayerGP : At.GlobalPos -> Obj.ObjectsLayout -> At.GlobalPos
+updatePlayerGP oldGP layout =
+    Dict.get ( "Player", 0 ) layout
+        |> Maybe.map pY
+        |> Maybe.withDefault oldGP
+
+
+recoverLevel : GameState -> GameLevel -> GameLevel
+recoverLevel x gameLevel =
+    { gameLevel
+        | playerGPos = x.playerGPos
+        , isWin = x.isWin
+        , objectsLayout = x.objectsLayout
+        , visionData = x.visionData
+    }
 
 
 update : Msg -> GameLevel -> GameLevel
@@ -107,16 +130,24 @@ update msg gameLevel =
             case res of
                 ( True, newLayout ) ->
                     let
+                        newGP =
+                            updatePlayerGP gameLevel.playerGPos newLayout
+
                         newVisionData =
-                            updateVision gameLevel.map newLayout gameLevel.visionData
+                            updateVision gameLevel.map newGP newLayout gameLevel.visionData
 
                         oldState =
-                            GameState gameLevel.visionData gameLevel.objectsLayout
+                            GameState gameLevel.playerGPos gameLevel.visionData gameLevel.objectsLayout gameLevel.isWin
+
+                        newIsWin =
+                            winJudge newGP gameLevel.winCondition newLayout
                     in
                     { gameLevel
                         | objectsLayout = newLayout
+                        , playerGPos = newGP
                         , visionData = newVisionData
                         , gameRecords = oldState :: gameLevel.gameRecords
+                        , isWin = newIsWin
                     }
 
                 _ ->
@@ -128,11 +159,11 @@ update msg gameLevel =
                     gameLevel
 
                 x :: xs ->
-                    { gameLevel
-                        | objectsLayout = x.objectsLayout
-                        , visionData = x.visionData
-                        , gameRecords = xs
-                    }
+                    let
+                        oldLevel =
+                            recoverLevel x gameLevel
+                    in
+                    { oldLevel | gameRecords = xs }
 
         Reset ->
             case List.reverse gameLevel.gameRecords of
@@ -140,78 +171,152 @@ update msg gameLevel =
                     gameLevel
 
                 x :: _ ->
-                    { gameLevel
-                        | objectsLayout = x.objectsLayout
-                        , visionData = x.visionData
-                        , gameRecords = []
-                    }
+                    let
+                        oldLevel =
+                            recoverLevel x gameLevel
+                    in
+                    { oldLevel | gameRecords = [] }
 
         _ ->
             gameLevel
 
 
+tileSetWidth : Int
+tileSetWidth =
+    5
+
+
+tileNumberToPosition : Int -> Position
+tileNumberToPosition id =
+    let
+        x =
+            modBy tileSetWidth id
+
+        y =
+            id // tileSetWidth
+    in
+    ( x, y )
+
+
+tileFromId : Int -> Tile Msg
+tileFromId id =
+    Tile.fromPosition (tileNumberToPosition id)
+
+
+firstObjectTileId : Int
+firstObjectTileId =
+    13
+
+
 objectTile : ( String, Int ) -> Tile Msg
 objectTile ( name, ind ) =
-    Tile.movable (name ++ String.fromInt ind) <|
-        case name of
-            "Player" ->
-                Tile.fromPosition ( 1, 0 )
+    let
+        objName =
+            getObjName name
 
-            "Crate" ->
-                Tile.fromPosition ( 0, 3 )
+        transName =
+            getTransName name
+    in
+    if name == "Player" then
+        tileFromId firstObjectTileId
+            |> Tile.movable "ZZZ"
 
-            _ ->
-                Tile.fromPosition ( 0, 0 )
+    else
+        Tile.movable (name ++ String.fromInt ind) <|
+            case objName of
+                "Crate" ->
+                    tileFromId (firstObjectTileId + 1)
+
+                "Wall" ->
+                    tileFromId (firstObjectTileId + 2)
+
+                "Butterfly" ->
+                    let
+                        defaultId =
+                            firstObjectTileId + 3
+                    in
+                    case transName of
+                        "F" ->
+                            tileFromId (defaultId + 1)
+
+                        _ ->
+                            tileFromId defaultId
+
+                "Triangle" ->
+                    let
+                        defaultId =
+                            firstObjectTileId + 5
+                    in
+                    case transName of
+                        "R" ->
+                            tileFromId (defaultId + 1)
+
+                        "RR" ->
+                            tileFromId (defaultId + 2)
+
+                        "F" ->
+                            tileFromId (defaultId + 3)
+
+                        "RF" ->
+                            tileFromId (defaultId + 4)
+
+                        "RRF" ->
+                            tileFromId (defaultId + 5)
+
+                        _ ->
+                            tileFromId defaultId
+
+                _ ->
+                    tileFromId 0
+
+
+firstGroundColorId : Int
+firstGroundColorId =
+    1
 
 
 groundTile : Int -> Tile Msg
 groundTile ind =
     if ind < 0 then
-        blackTile
+        if -ind < 4 then
+            tileFromId (firstGroundColorId - ind)
+
+        else
+            --blackTile
+            tileFromId firstGroundColorId
+        {-
+           black -1
+           mirror -2
+           rotate -3
+        -}
 
     else
-        case ind of
-            -- red
-            0 ->
-                Tile.fromPosition ( 2, 0 )
+        let
+            firstColorTile =
+                firstGroundColorId + 4
+        in
+        if ind < 7 then
+            tileFromId (firstColorTile + ind)
 
-            -- orange
-            1 ->
-                Tile.fromPosition ( 3, 0 )
-
-            -- yellow
-            2 ->
-                Tile.fromPosition ( 0, 1 )
-
-            -- green
-            3 ->
-                Tile.fromPosition ( 1, 1 )
-
-            -- cyan
-            4 ->
-                Tile.fromPosition ( 2, 1 )
-
-            -- blue
-            5 ->
-                Tile.fromPosition ( 3, 1 )
-
-            -- purple
-            6 ->
-                Tile.fromPosition ( 0, 2 )
-
-            -- pink
-            _ ->
-                Tile.fromPosition ( 1, 2 )
+        else
+            tileFromId (firstColorTile + 7)
 
 
-blackTile : Tile Msg
-blackTile =
-    Tile.fromPosition ( 2, 2 )
+
+{- red 0
+   orange 1
+   yellow 2
+   green 3
+   cyan 4
+   blue 5
+   purple 6
+   pink else
+-}
 
 
 shadowTile : Tile Msg
 shadowTile =
-    Tile.fromPosition ( 3, 2 )
+    tileFromId firstGroundColorId
         |> Tile.movable "shadow"
         |> Tile.jumping
 
@@ -457,15 +562,18 @@ gameView level =
 information : GameLevel -> List (Html Msg)
 information { introduction, isWin } =
     (if isWin then
-        [ Html.text "Congratulations, you won!", Html.br [] [] ]
+        [ Html.text "Congratulations, you win!", Html.br [] [] ]
 
      else
         []
     )
-        ++ [ Html.text introduction ,Html.br [] [], Html.text generalGuide]
+        ++ [ Html.text introduction, Html.br [] [], Html.text generalGuide ]
+
+
 generalGuide : String
 generalGuide =
-    "Use the arrow Keys or WASD to move, Z to undo and R to reset"
+    "Use the arrow Keys or WASD to move, Z to undo and R to reset, Esc to go back to menu"
+
 
 divDefautStyle : List (Html.Attribute Msg)
 divDefautStyle =
@@ -491,23 +599,45 @@ getMapByName name =
     Maybe.withDefault At.emptyMap (Dict.get name At.mapDict)
 
 
+
+{- type alias InvokedObj =
+   { objName : String
+   , id : Int
+   , extraName : Maybe String
+   , groupId : Maybe Int
+   }
+-}
+
+
+getObjName : String -> String
+getObjName name =
+    List.head (String.split "-" name)
+        |> Maybe.withDefault ""
+
+
+getTransName : String -> String
+getTransName name =
+    Array.fromList (String.split "-" name)
+        |> Array.get 1
+        |> Maybe.withDefault ""
+
+
 invokObject : String -> Int -> At.GlobalPos -> Maybe Int -> List ( ( String, Int ), ( Obj.Object, At.GlobalPos ) )
 invokObject name id gP mgrpId =
     let
-        mObj =
-            Dict.get name Obj.objDict
+        objName =
+            getObjName name
+
+        obj =
+            Dict.get objName Obj.objDict
+                |> Maybe.withDefault (Obj.Object objName [])
     in
-    case mObj of
-        Just obj ->
-            case mgrpId of
-                Nothing ->
-                    [ ( ( name, id ), ( obj, gP ) ) ]
+    case mgrpId of
+        Nothing ->
+            [ ( ( name, id ), ( obj, gP ) ) ]
 
-                Just grpId ->
-                    [ ( ( name, id ), ( Obj.addObjInGrp grpId obj, gP ) ) ]
-
-        _ ->
-            []
+        Just grpId ->
+            [ ( ( name, id ), ( Obj.addObjInGrp grpId obj, gP ) ) ]
 
 
 invokObjectsByList : List ( String, Int, At.GlobalPos ) -> List ( ( String, Int ), At.GlobalPos, Int ) -> Obj.ObjectsLayout
@@ -530,16 +660,23 @@ levelGenerator :
     , groundPattern : At.GlobalPos -> Int
     , objectsLayout : Obj.ObjectsLayout
     , introduction : String
+    , winCondition : List ( String, Int )
     }
     -> GameLevel
-levelGenerator { map, groundPattern, name, objectsLayout, introduction } =
+levelGenerator { map, groundPattern, name, objectsLayout, introduction, winCondition } =
+    let
+        playerGP =
+            updatePlayerGP (At.GlobalPos 0 ( -1, -1 )) objectsLayout
+    in
     { map = map
     , groundPattern = groundPattern
     , name = name
-    , visionData = updateVision map objectsLayout (VisionElements Dict.empty [])
+    , playerGPos = playerGP
+    , visionData = updateVision map playerGP objectsLayout (VisionElements Dict.empty [])
     , objectsLayout = objectsLayout
     , gameRecords = []
     , introduction = introduction
+    , winCondition = winCondition
     , isWin = False
     }
 
@@ -552,30 +689,121 @@ defaultLayout1 =
 
         --, ( "Player", 1, At.GlobalPos 0 ( 7, 4 ) )
         ]
-        [ ( ( "Crate", 0 ), At.GlobalPos 0 ( 5, 4 ), 0 )
-        , ( ( "Crate", 1 ), At.GlobalPos 1 ( 5, 4 ), 0 )
+        [ ( ( "Butterfly", 0 ), At.GlobalPos 0 ( 5, 4 ), 0 )
+        , ( ( "Butterfly-F", 1 ), At.GlobalPos 1 ( 5, 4 ), 0 )
         ]
 
 
-myLevels : List GameLevel
-myLevels =
+levelList : List GameLevel
+levelList =
+    List.map levelGenerator <|
+        [ { map = getMapByName "SquareRoot"
+          , groundPattern =
+                \gP ->
+                    if gP.chartId < 0 then
+                        case gP.pos of
+                            -- mono action: mirror
+                            ( 5, 5 ) ->
+                                -2
+
+                            _ ->
+                                -1
+
+                    else
+                        case gP.pos of
+                            -- left yello
+                            ( 4, 2 ) ->
+                                2
+
+                            -- right cyan
+                            ( 6, 2 ) ->
+                                4
+
+                            _ ->
+                                3
+          , name = "Find the Butterfly"
+          , objectsLayout =
+                invokObjectsByList
+                    [ ( "Player", 0, At.GlobalPos 0 ( 4, 4 ) )
+                    , ( "Butterfly", 0, At.GlobalPos 0 ( 5, 2 ) )
+                    , ( "Butterfly-F", 1, At.GlobalPos 1 ( 5, 2 ) )
+                    ]
+                    []
+          , introduction = " Try to turn the butterfly to right pattern,  then move onto it."
+          , winCondition = [ ( "Butterfly-F", 1 ) ]
+          }
+        , { map = getMapByName "S3"
+          , groundPattern =
+                \gP ->
+                    if gP.chartId < 0 then
+                        case gP.pos of
+                            --mono action : rotate
+                            ( 3, 5 ) ->
+                                -3
+
+                            --mono action : mirror
+                            ( 7, 5 ) ->
+                                -2
+
+                            _ ->
+                                -1
+
+                    else
+                        case gP.pos of
+                            -- left yello
+                            ( 4, 2 ) ->
+                                2
+
+                            -- right bule
+                            ( 6, 2 ) ->
+                                5
+
+                            -- up red
+                            ( 5, 1 ) ->
+                                0
+
+                            _ ->
+                                3
+          , name = "Turn the Triangle"
+          , objectsLayout =
+                invokObjectsByList
+                    [ ( "Player", 0, At.GlobalPos 0 ( 4, 4 ) )
+                    , ( "Triangle", 0, At.GlobalPos 0 ( 5, 2 ) )
+                    , ( "Triangle-R", 1, At.GlobalPos 1 ( 5, 2 ) )
+                    , ( "Triangle-RR", 2, At.GlobalPos 2 ( 5, 2 ) )
+                    , ( "Triangle-F", 3, At.GlobalPos 3 ( 5, 2 ) )
+                    , ( "Triangle-RF", 4, At.GlobalPos 4 ( 5, 2 ) )
+                    , ( "Triangle-RRF", 5, At.GlobalPos 5 ( 5, 2 ) )
+                    ]
+                    []
+          , introduction = " Try to turn the Triangle to right pattern, then move onto it."
+          , winCondition = [ ( "Triangle-RRF", 5 ) ]
+          }
+        ]
+
+
+myDemos : List GameLevel
+myDemos =
     List.map levelGenerator <|
         [ { map = getMapByName "SquareRoot"
           , groundPattern = \gP -> gP.chartId
           , name = "Square Root"
           , objectsLayout = defaultLayout1
           , introduction = " This is a level"
+          , winCondition = []
           }
         , { map = getMapByName "EllipticCurve"
           , groundPattern = \gP -> gP.chartId
           , name = "Elliptic Curve"
           , objectsLayout = defaultLayout1
           , introduction = " This is a level"
+          , winCondition = []
           }
         , { map = getMapByName "SquareSquareRoot"
           , groundPattern = \gP -> gP.chartId
           , name = "(y^2+1)^2=x"
           , objectsLayout = defaultLayout1
           , introduction = " This is a level"
+          , winCondition = []
           }
         ]
